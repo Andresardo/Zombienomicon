@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ic_zombie_background">
+
+    <EditText
+        android:id="@+id/editText_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:enabled="false"
+        android:hint="@string/name_to_search"
+        android:inputType="textPersonName"
+        android:visibility="visible" />
+
+    <Spinner
+        android:id="@+id/spinner_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/editText_search"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/editText_search" />
+
+    <ListView
+        android:id="@+id/listView_search"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button_search" />
+
+    <Button
+        android:id="@+id/button_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/spinner_search"
+        android:layout_toEndOf="@+id/spinner_gender"
+        android:enabled="false"
+        android:onClick="button_searchOnClick"
+        android:text="@string/search" />
+
+    <Spinner
+        android:id="@+id/spinner_gender"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/button_search"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/spinner_search"
+        android:visibility="invisible" />
+
+    <Button
+        android:id="@+id/button_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/spinner_search"
+        android:onClick="ButtonDateOnClick"
+        android:text="@string/date"
+        android:visibility="invisible" />
+</RelativeLayout>

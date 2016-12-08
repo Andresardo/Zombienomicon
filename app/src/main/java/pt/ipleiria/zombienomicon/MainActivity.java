@@ -1,13 +1,386 @@
 package pt.ipleiria.zombienomicon;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import pt.ipleiria.zombienomicon.Model.Singleton;
+import pt.ipleiria.zombienomicon.Model.Zombie;
+import pt.ipleiria.zombienomicon.Model.Zombienomicon;
+
+/**
+ * Atividade principal principal
+ */
 public class MainActivity extends AppCompatActivity {
+    public static final String PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE = "pt.ipleiria.zombienomicon.edit.zombie";
+    public static final int REQUEST_CODE_SEARCH = 3;
+    private static final int REQUEST_CODE_ADD = 1;
+    private static final int REQUEST_CODE_EDIT = 2;
+    private Zombienomicon zombienomicon;
+    private ArrayList<Zombie> zombies;
+    private String saveFile = "zombienomicon.bin";
+    private ListView zombie_list;
+    private SimpleAdapter simpleadapter;
+    private MenuItem item_all;
+    private MenuItem item_dead;
+    private MenuItem item_undead;
 
+    /**
+     * Método de callback chamado quando se cria a atividade
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Singleton.getInstance().setContext(getApplicationContext());
+        /**
+         * Tenta fazer o load da lista contida no ficheiro Zombienomicon.bin. Caso não consiga, pode
+         * dever-se ao facto de Zombinomicon.bin não ter sido criada ou ao facto de ter ocorrido um
+         * erro ao ler do ficheiro.
+         */
+        try {
+            FileInputStream fileInputStream = openFileInput(saveFile);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            Singleton.getInstance().setZombienomicon((Zombienomicon) objectInputStream.readObject());
+            objectInputStream.close();
+            fileInputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(MainActivity.this, R.string.no_file_error, Toast.LENGTH_LONG).show();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(MainActivity.this, R.string.read_error, Toast.LENGTH_LONG).show();
+        }
+
+        /**
+         * Atribui à variavel Zombienomicon desta atividade a Zombienomicon do Singleton
+         */
+        zombienomicon = Singleton.getInstance().getZombienomicon();
+
+        /**
+         * Cria a toolbar e atribui-a à Atividade
+         */
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+
+        /**
+         * Cria a referencia para a listview
+         * Cria um adapter para a lista de zombies
+         * Associa o adapter à lista de zombies
+         */
+        zombies = zombienomicon.getZombies();
+        createSimpleAdapter(zombies);
+        zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+        zombie_list.setAdapter(simpleadapter);
+
+        /**
+         * Quando se clica num Item da ListView Mostra uma AlerDialog com todos os dados do zombie
+         * Caso se carregue no botão edit, a AddActivity é iniciada com esses dados
+         */
+        zombie_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                HashMap<String, String> h = (HashMap<String, String>) parent.getItemAtPosition(position);
+                final Zombie zombie = zombienomicon.searchZombieByID(Integer.parseInt(h.get("id")));
+
+                AlertDialog.Builder editConfirmation = new AlertDialog.Builder(MainActivity.this);
+                editConfirmation.setTitle(R.string.edit_zombie);
+                editConfirmation.setMessage(zombie.toString());
+                editConfirmation.setPositiveButton(
+                        R.string.edit,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent i = new Intent(MainActivity.this, AddActivity.class);
+                                i.putExtra(PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE, zombie);
+                                startActivityForResult(i, REQUEST_CODE_EDIT);
+                            }
+                        });
+
+                editConfirmation.setNegativeButton(
+                        R.string.cancel,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                editConfirmation.show();
+            }
+        });
+
+        /**
+         * Quando se faz um long click  num Item da ListView cria-se um AlertDialog a perguntar ao
+         * utilizador se pretende eliminar o Zombie nessa posição
+         * Caso o utilizador escolha "SIM", o Zombie é eliminado; caso escolha "NÂO" contrário não
+         * acontece nada
+         */
+        zombie_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                AlertDialog.Builder deleteConfirmation = new AlertDialog.Builder(MainActivity.this);
+                deleteConfirmation.setTitle(R.string.delete_zombie);
+                deleteConfirmation.setMessage(R.string.confirm_delete_zombie);
+                deleteConfirmation.setPositiveButton(
+                        R.string.yes,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                /**
+                                 * Dependendo de qual o botão vísivel a lista de Zombies é diferente,
+                                 * por isso é necessário separa-los.
+                                 */
+
+                                if (item_all.isVisible()) {
+                                    zombies = zombienomicon.getZombies();
+                                    int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
+                                    Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
+                                    createSimpleAdapter(zombienomicon.getZombies());
+                                    zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+                                    zombie_list.setAdapter(simpleadapter);
+                                } else if (item_dead.isVisible()) {
+                                    zombies = zombienomicon.searchZombieByState("Dead");
+                                    int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
+                                    Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
+                                    createSimpleAdapter(zombienomicon.searchZombieByState("Dead"));
+                                    zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+                                    zombie_list.setAdapter(simpleadapter);
+                                } else {
+                                    zombies = zombienomicon.searchZombieByState("Undead");
+                                    int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
+                                    Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
+                                    createSimpleAdapter(zombienomicon.searchZombieByState("Undead"));
+                                    zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+                                    zombie_list.setAdapter(simpleadapter);
+                                }
+
+                            }
+                        });
+
+                deleteConfirmation.setNegativeButton(
+                        R.string.no,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                deleteConfirmation.show();
+
+                return true;
+            }
+        });
     }
+
+    /**
+     * Método de callback chamado quando se seleciona um dos botões do menu
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            /**
+             * Caso o botão pressionado seja Search inicia a SearchActivity e envia a lista de Zombies
+             */
+            case R.id.zombie_search:
+                Intent i = new Intent(this, SearchActivity.class);
+                startActivityForResult(i, REQUEST_CODE_SEARCH);
+                break;
+            /**
+             * Caso o botão pressionado seja Add inicia a AddActivity com o objetivo de receber um Zombie para adicionar à lista
+             */
+            case R.id.zombie_add:
+                Intent i2 = new Intent(this, AddActivity.class);
+                startActivityForResult(i2, REQUEST_CODE_ADD);
+                break;
+            /**
+             * Caso o botão visivel seja o zombie_all (mão e RIP) a listview apresenta todos os Zombies.
+             * Quando se clica no botão, o botão visivel passa a ser zombie_dead (RIP) e a listview
+             * passa a mostrar todos os Zombies cujo estado seja "Dead"
+             */
+            case R.id.zombie_all:
+                item_all.setVisible(false);
+                item_dead.setVisible(true);
+                item_undead.setVisible(false);
+                createSimpleAdapter(zombienomicon.searchZombieByState("Dead"));
+                zombie_list.setAdapter(simpleadapter);
+                break;
+            /**
+             * Caso o botão visivel seja o zombie_dead (RIP) a listview apresenta todos os Zombies
+             * cujo estado seja "Dead".
+             * Quando se clica no botão, o botão visivel passa a ser zombie_undead (mão) e a listview
+             * passa a mostrar todos os Zombies cujo estado seja "Undead"
+             */
+            case R.id.zombie_dead:
+                item_all.setVisible(false);
+                item_dead.setVisible(false);
+                item_undead.setVisible(true);
+                createSimpleAdapter(zombienomicon.searchZombieByState("Undead"));
+                zombie_list.setAdapter(simpleadapter);
+                break;
+            /**
+             * Caso o botão visivel seja o zombie_undead (mão) a listview apresenta todos os Zombies
+             * cujo estado seja "Undead".
+             * Quando se clica no botão, o botão visivel passa a ser zombie_all(mão e RIP) e a listview
+             * passa a mostrar todos os Zombies
+             */
+            case R.id.zombie_undead:
+                item_all.setVisible(true);
+                item_dead.setVisible(false);
+                item_undead.setVisible(false);
+                createSimpleAdapter(zombienomicon.getZombies());
+                zombie_list.setAdapter(simpleadapter);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Método de callback chamado quando uma atividade devolve algo
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        /**
+         * Caso o requestCode recebido seja da AddActivity (para adicionar), coloca o Zombie recebido na lista
+         */
+        if (requestCode == REQUEST_CODE_ADD) {
+            if (resultCode == RESULT_OK) {
+                try {
+                    Zombie zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
+                    zombienomicon.addZombie(zombie);
+                    Singleton.getInstance().setZombienomicon(zombienomicon);
+
+                    /**
+                     * Quando se volta de adicionar, apresenta novamente a lista completa dos Zombies
+                     */
+                    createSimpleAdapter(zombienomicon.getZombies());
+                    zombie_list.setAdapter(simpleadapter);
+
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        /**
+         * Caso o requestCode recebido seja da AddActivity(para editar), altera os parâmetros do Zombie pretendido
+         */
+        if (requestCode == REQUEST_CODE_EDIT) {
+            if (resultCode == RESULT_OK) {
+                try {
+                    Zombie new_zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
+                    Zombie old_zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE);
+                    zombienomicon.editZombie(new_zombie, old_zombie);
+                    Singleton.getInstance().setZombienomicon(zombienomicon);
+
+                    createSimpleAdapter(zombienomicon.getZombies());
+                    zombie_list.setAdapter(simpleadapter);
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(this, R.string.id_already_exists, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        /**
+         * Caso o requestCode recebido seja da SearchActivity apenas atualiza a lista
+         */
+        if (requestCode == REQUEST_CODE_SEARCH) {
+            if (resultCode == RESULT_CANCELED) {
+
+                createSimpleAdapter(zombienomicon.getZombies());
+                zombie_list.setAdapter(simpleadapter);
+            }
+        }
+    }
+
+    /**
+     * Método de callback que permite guardar a Zombienomicon atual no ficheiro zombienomicon.bin
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            FileOutputStream fileOutputStream = openFileOutput(saveFile, Context.MODE_PRIVATE);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(zombienomicon);
+            objectOutputStream.close();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(MainActivity.this, R.string.write_error, Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    /**
+     * Método que permite criar um SimpleAdapter de forma a que em cada Item da ListView apenas apareça
+     * o nome e estado do Zombie
+     */
+    private void createSimpleAdapter(ArrayList<Zombie> list) {
+        List<HashMap<String, String>> simpleAdapterData = new ArrayList<>();
+
+        for (Zombie z : list) {
+            HashMap<String, String> hashMap = new HashMap<>();
+
+            hashMap.put("name", z.getName());
+            hashMap.put("state", z.getState_dead());
+            hashMap.put("id", "" + z.getId());
+
+            simpleAdapterData.add(hashMap);
+        }
+
+        String[] from = {"name", "state"};
+        int[] to = {R.id.textView_name, R.id.textView_state};
+        simpleadapter = new SimpleAdapter(getBaseContext(), simpleAdapterData, R.layout.listview_item, from, to);
+    }
+
+    /**
+     * Método de callback chamado quando se cria o menu
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        item_all = menu.findItem(R.id.zombie_all);
+        item_dead = menu.findItem(R.id.zombie_dead);
+        item_undead = menu.findItem(R.id.zombie_undead);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     * Quando volta de outras atividades, coloca como visível o botão de filtro "All"
+     */
+    @Override
+    protected void onRestart() {
+        super.onResume();
+        item_all.setVisible(true);
+        item_dead.setVisible(false);
+        item_undead.setVisible(false);
+
+        createSimpleAdapter(zombienomicon.getZombies());
+        zombie_list.setAdapter(simpleadapter);
+    }
+
+
 }

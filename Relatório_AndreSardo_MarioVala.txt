@@ -1,0 +1,2376 @@
+# NÚMERO E NOME DOS ESTUDANTES
+
+André Sardo Nº2140968
+Mário vala Nº2140237
+
+# FUNCIONALIDADES IMPLEMENTADAS
+
+Data Model
+	-ID com nove dígitos que pode ir desde 000000000 até 999999999
+	-Nome e Local de Deteção são Strings
+	-Estado é uma String que pode ser "Dead" ("Morto") ou "Undead" ("Morto-Vivo")
+	-Género é uma String que pode ser "Male"("Macho"), "Female" ("Fêmea") ou "Undefined" ("Indefinido")
+	-As datas de localização e terminação são variaveis do tipo Gregorian Calendar
+
+Main Screen
+	-São apresentados os nomes e estado dos Zombies
+	-Caso se faça click num item da lista, é apresentado um AlertDialog que mostra ao utilizador toda a informação do Zombie. Caso o 
+	utilizador pretenda, pode escolher a opção de editar no referido AlertDialog para editar os dados desse mesmo Zombie
+	-Caso se faça um long click num dos items da lista, é perguntado ao utilizador se este pretende eliminar o Zombie em questão. Se
+	o utilizador escolher "SIM", o Zombie é eliminado
+	-É apresentada uma Toolbar com os seguintes botões:
+		-Botão que permite filtrar os Zombies apresentados por estado ("Dead", "Undead" ou "All");
+		-Botão que permite adicionar novo Zombie;
+		-Botão que permite aceder à atividade de procura de Zombies (Search Activity).
+
+Details Screen
+	-Neste ecrã são mostrados todos os campos do Zombie a ser preenchidos pelo utilizador
+	-Caso a atividade tenha sido iniciada com o intuito de adicionar novo Zombie, os campos encontram-se inicialmente vazios e 
+	 o botão mostra "ADICIONAR"
+	-Caso a atividade tenha sido iniciada com o intuito de editar um Zombie existente, os campos encontram-se já preenchidos
+	 com a informação correta do zombie selecionado e o botão mostra "EDITAR"
+	-Quando o botão é premido é mostrado ao utilizador um AlertDialog que pergunta ao utilizador se este pretende concluir a ação
+
+Search Screen
+	-Neste ecrã é possivel filtrar Zombies por ID, nome, género, detetado desde ou em todos os campos
+	-Consoante o filtro usado é apresentada a lista correspondente
+	-Tal como no Main Screen é possivel fazer um click num item da lista para editar ou um long click para apagar um Zombie
+
+General Requirements
+	-Como foi descrito anteriormente, é apresentado um Diálogo ao utilizador de cada vez que este tenta editar, adicionar ou apagar um Zombie
+	-Todos os dados são guardados num ficheiro "zombienomicon.bin" quando a aplicação é fechada e são carregados quando a aplicação é iniciada
+	-A aplicação pode ser usada em Português ou Inglês 
+ 	-A aplicação é resistente a "crashes", por exemplo:
+			-Mudança de orientação,
+			-Caso exitam campos não preenchidos,
+			-...
+ 
+
+# FUNCIONALIDADES NÃO IMPLEMENTADAS OU APENAS PARCIALMENTE IMPLEMENTADAS
+
+	-Todas as funcionalidades pretendidas foram implementadas
+
+# DESCRIÇÃO DAS FUNCIONALIDADES EXTRA
+	
+	-A aplicação apresenta uma imagem de background
+	-O icon da aplicação foi alterado
+	-De cada vez que se adiciona ou edita um Zombie a aplicação produz um som
+	-A filtragem no Main Screen é feita através de 3 botões:
+		-Inicialmente são apresentados todos os Zombies
+		-Quando o botão é premido pela primeira vez, passam a ser mostrados todos os Zombies cujo estado seja "Dead"
+		-Quando o botão é premido pela segunda vez, passam a ser mostrados todos os Zombies cujo estado seja "Undead"
+		-Quando o botão é premido novamente, voltam a aparecer todos os Zombies e o ciclo repete-se
+	-Para a lista do Main Screen foi implementado um SimpleAdapter de forma a que mostre apenas nome e estado
+	-Foi implementada a classe de DatePickerFragment de forma a que se possam escolher as datas de forma fácil
+	-São apresentadas Toasts caso:
+		-O utilizador não preencha todos os campos;
+		-Caso o ID inserido não tenha 9 digitos
+		-Caso a data inserida seja inválida (no futuro)
+		-Caso o ID inserido já exita
+		-Se não forem encontrados nenhuns Zombies
+		-...
+
+# OBSERVAÇÕES
+
+# CÓDIGO DAS CLASSES JAVA
+
+########################## - Singleton - #############################
+
+package pt.ipleiria.zombienomicon.Model;
+
+import android.content.Context;
+
+/**
+ * Classe que permite que todas as atividades acessem à mesma Zombienomicon
+ */
+public class Singleton {
+    /**
+     * Cria um Singleton que armazena a lista de Zombies (Zombienomicon) para que esta possa ser usada
+     * em todas as atividades
+     */
+    private static Singleton ourInstance = new Singleton();
+    private Zombienomicon zombienomicon;
+    private Context c;
+
+    /**
+     * Método que permite criar a instância para este Singleton
+     */
+    private Singleton() {
+        this.zombienomicon = new Zombienomicon();
+    }
+
+    /**
+     * Método que devolve a instância do Singleton
+     */
+    public static Singleton getInstance() {
+        return ourInstance;
+    }
+
+    /**
+     * Método que devolve toda a lista de Zombies
+     */
+    public Zombienomicon getZombienomicon() {
+        return zombienomicon;
+    }
+
+    /**
+     * Método que permite atualizar a Zombienomicon do Singleton com a Zombienomicon recebida
+     */
+    public void setZombienomicon(Zombienomicon zombienomicon) {
+        this.zombienomicon = zombienomicon;
+    }
+    /**
+     * Método que devolve o contexto
+     */
+    Context getContext() {
+        return c;
+    }
+
+    /**
+     * Método que permite atualizar o contexto do Singleton com o contexto recebido
+     */
+    public void setContext(Context c) {
+        this.c = c;
+    }
+}
+
+########################## - Zombie - #############################
+
+package pt.ipleiria.zombienomicon.Model;
+
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.GregorianCalendar;
+import java.util.Objects;
+
+import pt.ipleiria.zombienomicon.R;
+
+/**
+ * Class Zombie que contem toda a informação relativa a um zombie
+ */
+public class Zombie implements Serializable {
+    private int id;
+    private GregorianCalendar detection_date;
+    private GregorianCalendar termination_date;
+    private String name;
+    private String gender;
+    private String detection_location;
+    private String state_dead;
+
+    /**
+     * Construtor da classe que recebe todos os valores necessários para criar um novo Zombie
+     */
+    public Zombie(int id, GregorianCalendar detection_date, GregorianCalendar termination_date, String name, String gender, String detection_location, String state_dead) {
+        this.id = id;
+        this.detection_date = detection_date;
+        this.termination_date = termination_date;
+        this.name = name;
+        this.gender = gender;
+        this.detection_location = detection_location;
+        this.state_dead = state_dead;
+    }
+
+    /**
+     * Método que devolove o ID de um determinado Zombie
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * Método que permite alterar o ID de um determinado Zombie
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    /**
+     * Método que devolove a data de deteção de um determinado Zombie
+     */
+    public GregorianCalendar getDetection_date() {
+        return detection_date;
+    }
+
+    /**
+     * Método que permite alterar a data de deteção de um determinado Zombie
+     */
+    void setDetection_date(GregorianCalendar detection_date) {
+        this.detection_date = detection_date;
+    }
+
+    /**
+     * Método que devolove a data de terminação de um determinado Zombie
+     */
+    public GregorianCalendar getTermination_date() {
+        return termination_date;
+    }
+
+    /**
+     * Método que permite alterar a data de terminação de um determinado Zombie
+     */
+    void setTermination_date(GregorianCalendar termination_date) {
+        this.termination_date = termination_date;
+    }
+
+    /**
+     * Método que devolove o nome de um determinado Zombie
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Método que permite alterar o nome de um determinado Zombie
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Método que devolove o género de um determinado Zombie
+     */
+    public String getGender() {
+        return gender;
+    }
+
+    /**
+     * Método que permite alterar o género de um determinado Zombie
+     */
+    void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    /**
+     * Método que devolove a localização de deteção de um determinado Zombie
+     */
+    public String getDetection_location() {
+        return detection_location;
+    }
+
+    /**
+     * Método que permite alterar a localização de deteção de um determinado Zombie
+     */
+    void setDetection_location(String detection_location) {
+        this.detection_location = detection_location;
+    }
+
+    /**
+     * Método que devolove o estado de um determinado Zombie
+     */
+    public String getState_dead() {
+        return state_dead;
+    }
+
+    /**
+     * Método que permite alterar o estado de um determinado Zombie
+     */
+    void setState_dead(String state_dead) {
+        this.state_dead = state_dead;
+    }
+
+    /**
+     * Método que devolove a String com todos os parâmetros de um Zombie
+     */
+    @Override
+    public String toString() {
+        String res = "";
+
+        SimpleDateFormat formatD = new SimpleDateFormat("dd-MMM-yyyy");
+        formatD.setCalendar(detection_date);
+        String dateFormattedD = formatD.format(detection_date.getTime());
+
+        SimpleDateFormat formatT = new SimpleDateFormat("dd-MMM-yyyy");
+        formatT.setCalendar(termination_date);
+        String dateFormattedT = formatT.format(termination_date.getTime());
+
+        /**
+         * Caso o ID tenha zeros à esquerda, são acrescentados para serem apresentados
+         */
+        String idAsString = "" + id;
+        int length = idAsString.length();
+        idAsString = "";
+        for (int i = 0; i < 9 - length; i++) {
+            idAsString += '0';
+        }
+        idAsString += id;
+
+        /**
+         * Caso o Zombie esteja morto, o toString apresenta também a data de terminação
+         */
+        res = Singleton.getInstance().getContext().getResources().getString(R.string.id) + idAsString + '\n' +
+                Singleton.getInstance().getContext().getResources().getString(R.string.name) + name + '\n' +
+                Singleton.getInstance().getContext().getResources().getString(R.string.state) + state_dead + '\n' +
+                Singleton.getInstance().getContext().getResources().getString(R.string.gender) + gender + '\n' +
+                Singleton.getInstance().getContext().getResources().getString(R.string.detection_date) + dateFormattedD + '\n' +
+                Singleton.getInstance().getContext().getResources().getString(R.string.detection_location) + detection_location + '\n';
+        if (Objects.equals(state_dead, "Dead")) {
+            res += Singleton.getInstance().getContext().getResources().getString(R.string.termination_date) + dateFormattedT + '\n';
+        }
+        return res;
+    }
+
+    /**
+     * Concatena todos os dados do Zombie numa String para ser procurado no método SearchZombieByAll
+     */
+    String zombieSimpleToString() {
+        String res = "";
+
+        SimpleDateFormat formatD = new SimpleDateFormat("dd-MMM-yyyy");
+        formatD.setCalendar(detection_date);
+        String dateFormattedD = formatD.format(detection_date.getTime());
+
+        SimpleDateFormat formatT = new SimpleDateFormat("dd-MMM-yyyy");
+        formatT.setCalendar(termination_date);
+        String dateFormattedT = formatT.format(termination_date.getTime());
+
+        /**
+         * Caso o ID tenha zeros à esquerda, são acrescentados para serem apresentados
+         */
+        String idAsString = "" + id;
+        int length = idAsString.length();
+        idAsString = "";
+        for (int i = 0; i < 9 - length; i++) {
+            idAsString += '0';
+        }
+        idAsString += id;
+
+        res += idAsString + '\n' +
+                name + '\n' +
+                state_dead + '\n' +
+                gender + '\n' +
+                dateFormattedD + '\n' +
+                detection_location + '\n';
+        if (Objects.equals(state_dead, "Dead")) {
+            res += dateFormattedT;
+        }
+        return res;
+    }
+}
+
+########################## - Zombienomicon - #############################
+
+package pt.ipleiria.zombienomicon.Model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.Objects;
+
+/**
+ * Class Zombienomicon que contem uma lista de todos os zombies.
+ */
+public class Zombienomicon implements Serializable {
+    private ArrayList<Zombie> zombies;
+
+    /**
+     * Instanciar lista de zombies
+     */
+    Zombienomicon() {
+        this.zombies = new ArrayList<>();
+    }
+
+    /**
+     * Método que procura todos os zombies cujo nome contenha a string inserida
+     */
+    public ArrayList<Zombie> searchZombieByName(String string) {
+        ArrayList<Zombie> list = new ArrayList<>();
+        for (Zombie z : zombies) {
+            if (z.getName().contains(string)) {
+                list.add(z);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Método que procura e devolve o zombie com um determinado ID
+     */
+    public Zombie searchZombieByID(int id) {
+        for (Zombie z : zombies) {
+            if (z.getId() == id) {
+                return z;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Método que procura todos os zombies cujo id contenha a string inserida
+     */
+    public ArrayList<Zombie> searchZombieContainingId(String received) {
+        ArrayList<Zombie> list = new ArrayList<>();
+        String idAsString;
+
+        for (Zombie z : zombies) {
+            idAsString = "" + z.getId();
+            int length = idAsString.length();
+            idAsString = "";
+            for (int i = 0; i < 9 - length; i++) {
+                idAsString += '0';
+            }
+            idAsString += z.getId();
+            if (idAsString.contains(received)) {
+                list.add(z);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Método que procura e devolve a posição do zombie com um determinado ID
+     */
+    public int searchPositionByID(int id) {
+        for (int i = 0; i < zombies.size(); i++) {
+            if (zombies.get(i).getId() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Método que devolve uma lista de Zombies de um determinado estado
+     */
+    public ArrayList<Zombie> searchZombieByState(String string) {
+        ArrayList<Zombie> list = new ArrayList<>();
+        for (Zombie z : zombies) {
+            if (z.getState_dead().equals(string)) {
+                list.add(z);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Método que devolve uma lista de Zombies de um determinado género
+     */
+    public ArrayList<Zombie> searchZombieByGender(String string) {
+        ArrayList<Zombie> list = new ArrayList<>();
+        for (Zombie z : zombies) {
+            if (Objects.equals(z.getGender(), string)) {
+                list.add(z);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Método que devolve a lista de Zombies cuja data de deteção é posterior a um determinada data
+     */
+    public ArrayList<Zombie> searchZombieByDetectionDate(GregorianCalendar date) {
+        ArrayList<Zombie> list = new ArrayList<>();
+        for (Zombie z : zombies) {
+            if (z.getDetection_date().compareTo(date) >= 0) {
+                list.add(z);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Método que devolve a lista de todos os zombies
+     */
+    public ArrayList<Zombie> getZombies() {
+        return zombies;
+    }
+
+    @Override
+    public String toString() {
+        String res = "";
+        for (Zombie z : zombies) {
+            res += z + "\n";
+        }
+        return res;
+    }
+
+    /**
+     * Método que edita os campos de um Zombie
+     */
+    public void editZombie(Zombie new_zombie, Zombie old_zombie) {
+        if (searchZombieByID(new_zombie.getId()) != null && old_zombie.getId() != new_zombie.getId()) {
+            throw new IllegalArgumentException();
+        } else {
+            Zombie originalZombie = searchZombieByID(old_zombie.getId());
+            originalZombie.setId(new_zombie.getId());
+            originalZombie.setName(new_zombie.getName());
+            originalZombie.setDetection_date(new_zombie.getDetection_date());
+            originalZombie.setDetection_location(new_zombie.getDetection_location());
+            originalZombie.setGender(new_zombie.getGender());
+            originalZombie.setState_dead(new_zombie.getState_dead());
+            originalZombie.setTermination_date(new_zombie.getTermination_date());
+        }
+    }
+
+    /**
+     * Método que devolve a lista de Zombies de um determinado género
+     */
+    public void addZombie(Zombie z) {
+        if (searchZombieByID(z.getId()) != null) {
+            throw new IllegalArgumentException("ID já existe!");
+        } else {
+            zombies.add(z);
+        }
+    }
+
+    public void deleteZombie(int position) {
+        zombies.remove(position);
+    }
+
+
+    /**
+     * Verifica se a String recebida está contida nos dados de cada Zombie
+     */
+    public ArrayList<Zombie> searchZombieByAll(String string) {
+        ArrayList<Zombie> list = new ArrayList<>();
+        for (Zombie z : zombies) {
+            if (z.zombieSimpleToString().contains(string)) {
+                list.add(z);
+            }
+        }
+        return list;
+    }
+}
+
+########################## - AddActivity - #############################
+
+package pt.ipleiria.zombienomicon;
+
+import android.app.DialogFragment;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.GregorianCalendar;
+import java.util.Objects;
+
+import pt.ipleiria.zombienomicon.Model.Zombie;
+
+public class AddActivity extends AppCompatActivity {
+
+    public static final String PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE = "pt.ipleiria.zombienomicon.new_zombie";
+    public static final String PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE = "pt.ipleiria.zombienomicom.old.zombie";
+    private Zombie old_zombie;
+    private boolean edit = false;
+    private GregorianCalendar dateDetection = new GregorianCalendar(10, 1, 1);
+    private GregorianCalendar dateTermination = new GregorianCalendar(10, 1, 1);
+    private String state = "", gender = "";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add);
+        final LinearLayout TerminationDate_Layout = (LinearLayout) findViewById(R.id.TerminationDate_Layout);
+        final Button add_button = (Button) findViewById(R.id.button_Add);
+        /**
+         * Caso a atividade receba um Zombie significa que o objetivo é editar
+         * Desta forma os campos são preenchidos com os dados do Zombie recebido
+         * O botão ADD passa a ser EDIT
+         */
+        Intent i = getIntent();
+        Serializable extra = i.getSerializableExtra(MainActivity.PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE);
+        if (extra != null) {
+            /**
+             * Coloca os parâmetros do Zombie recebido nos respetivos locais (EditText, RadioButton e TextView)
+             */
+            old_zombie = (Zombie) extra;
+            EditText editText_id = (EditText) findViewById(R.id.editText_addId);
+
+            /**
+             * Coloca zeros à esquerda na editText
+             */
+            String idAsString = "" + old_zombie.getId();
+            int length = idAsString.length();
+            idAsString = "";
+            for (int j = 0; j < 9 - length; j++) {
+                idAsString += '0';
+            }
+            idAsString += old_zombie.getId();
+
+            editText_id.setText(idAsString);
+            EditText editText_name = (EditText) findViewById(R.id.editText_addName);
+            editText_name.setText(old_zombie.getName());
+            EditText editText_DetectionLocation_ = (EditText) findViewById(R.id.editText_DetectionLocation);
+            editText_DetectionLocation_.setText(old_zombie.getDetection_location());
+            /**
+             * Caso o estado do Zombie recebido seja morto, coloca o Layout da data de Terminação visivel
+             * Caso o estado do Zombie recebido seja morto-vivo, coloca o Layout da data de Terminação invisivel
+             */
+            if (Objects.equals(old_zombie.getState_dead(), "Dead")) {
+                state = "Dead";
+                RadioButton button_state = (RadioButton) findViewById(R.id.radioButton_Dead);
+                button_state.setChecked(true);
+                TerminationDate_Layout.setVisibility(View.VISIBLE);
+            } else {
+                state = "Undead";
+                RadioButton button_state = (RadioButton) findViewById(R.id.radioButton_Undead);
+                button_state.setChecked(true);
+                TerminationDate_Layout.setVisibility(View.INVISIBLE);
+            }
+            if (Objects.equals(old_zombie.getGender(), "Male")) {
+                gender = "Male";
+                RadioButton button_gender = (RadioButton) findViewById(R.id.radioButton_male);
+                button_gender.setChecked(true);
+            } else if (Objects.equals(old_zombie.getGender(), "Female")) {
+                gender = "Female";
+                RadioButton button_gender = (RadioButton) findViewById(R.id.radioButton_female);
+                button_gender.setChecked(true);
+            } else {
+                gender = "Undefined";
+                RadioButton button_gender = (RadioButton) findViewById(R.id.radioButton_undefined);
+                button_gender.setChecked(true);
+            }
+            /**
+             * De forma a poder mostrar as datas (do tipo GregorianCalendar) numa TextView, é
+             * necessário formatá-las
+             */
+            SimpleDateFormat formatD = new SimpleDateFormat("dd-MMM-yyyy");
+            formatD.setCalendar(old_zombie.getDetection_date());
+            String dateFormattedD = formatD.format(old_zombie.getDetection_date().getTime());
+            dateDetection = old_zombie.getDetection_date();
+            TextView detectionDate_Text = (TextView) findViewById(R.id.textView_DetectionDate);
+            detectionDate_Text.setText(dateFormattedD);
+
+            GregorianCalendar dateVerifier = new GregorianCalendar(10, 1, 1);
+            if (!old_zombie.getTermination_date().equals(dateVerifier)) {
+                SimpleDateFormat formatT = new SimpleDateFormat("dd-MMM-yyyy");
+                formatT.setCalendar(old_zombie.getTermination_date());
+                String dateFormattedT = formatT.format(old_zombie.getTermination_date().getTime());
+                dateTermination = old_zombie.getTermination_date();
+                TextView terminationDate_Text = (TextView) findViewById(R.id.textView_TerminationDate);
+                terminationDate_Text.setText(dateFormattedT);
+            }
+
+            /**
+             * Coloca a variavel edit a true, para posteriormente saber se é necessário enviar um
+             * Zombie (caso se tenha iniciado a atividade para adicionar) ou dois (caso seja editar)
+             * Muda-se também o texto do botão
+             */
+            edit = true;
+            add_button.setText(R.string.edit);
+        } else {
+            /**
+             * Se não se recebeu nenhum Zombie, nas TextView das datas aparece que ainda não foram adicionadas
+             */
+            TextView detectionDate_Text = (TextView) findViewById(R.id.textView_DetectionDate);
+            detectionDate_Text.setText(R.string.no_date_yet);
+            TextView terminationDate_Text = (TextView) findViewById(R.id.textView_TerminationDate);
+            terminationDate_Text.setText(R.string.no_date_yet);
+        }
+
+        /**
+         * Este método é chamado sempre que se altera qual o botão selecionado no radio_group do estado
+         * Dependendo de qual o novo estado, o layout da data de Terminação fica visivel ou invisivel
+         */
+        RadioGroup radioGroup_state = (RadioGroup) findViewById(R.id.radioGroup_state);
+        radioGroup_state.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.radioButton_Dead:
+                        TerminationDate_Layout.setVisibility(View.VISIBLE);
+                        state = "Dead";
+                        break;
+                    case R.id.radioButton_Undead:
+                        TerminationDate_Layout.setVisibility(View.INVISIBLE);
+                        state = "Undead";
+                        dateTermination = new GregorianCalendar(10, 1, 1);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        /**
+         * Este método é chamado sempre que se altera qual o botão selecionado no radio_group do género
+         */
+        RadioGroup radioGroup_gender = (RadioGroup) findViewById(R.id.radioGroup_gender);
+        radioGroup_gender.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.radioButton_male:
+                        gender = "Male";
+                        break;
+                    case R.id.radioButton_female:
+                        gender = "Female";
+                        break;
+                    case R.id.radioButton_undefined:
+                        gender = "Undefined";
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+    }
+
+    /**
+     * Método de callback chamado quando se pressiona o botão de adicionar (ou editar)
+     */
+    public void button_AddOnClick(View view) {
+        /**
+         * Cria referências para as diferentes EditText
+         */
+        EditText editText_AddName = (EditText) findViewById(R.id.editText_addName);
+        EditText editText_AddId = (EditText) findViewById(R.id.editText_addId);
+        EditText editText_AddDetectionLocation = (EditText) findViewById(R.id.editText_DetectionLocation);
+
+        /**
+         * Inicialmente as datas foram inicialzadas com a data 1-Fev-0010 (10,1,1)
+         * A GregorianCalendar aqui criada serve para verificar se as datas foram alteradas
+         */
+        GregorianCalendar dateVerifier = new GregorianCalendar(10, 1, 1);
+        /**
+         * Neste if é verificado se as EditText não estão vazias, assim como se o estado e o género são
+         * diferentes de "" (pois foram assim que foram inicializados.
+         * Para além disso verifica se a data de Deteção foi alterada
+         */
+        if (!editText_AddName.getText().toString().isEmpty()
+                && !editText_AddId.getText().toString().isEmpty()
+                && !editText_AddDetectionLocation.getText().toString().isEmpty()
+                && !Objects.equals(state, "") && !Objects.equals(gender, "")
+                && !dateDetection.equals(dateVerifier)) {
+            /**
+             * Caso se tenham verificado as condições anteriores, e se o estado for morto ("Dead"), é
+             * necessário verificar se a data de Terminação foi alterada
+             */
+            if (Objects.equals(state, "Dead") && dateTermination.equals(dateVerifier)) {
+                /**
+                 * Caso a data não tenha sido alterada, o utilizador é notificado de tal e continua
+                 * nesta atividade
+                 */
+                Toast.makeText(this, R.string.empty_fields, Toast.LENGTH_SHORT).show();
+            } else {
+                /**
+                 * Verifica se o ID introduzido tem 9 dígitos. Caso contrário mostra essa informação
+                 * ao utilizador
+                 */
+                if (editText_AddId.getText().length() == 9) {
+                    /**
+                     * Se todos os campos estão preenchidos, prossegue-se à criação do novo Zombie recolhendo
+                     * os dados das editText
+                     */
+                    String name = editText_AddName.getText().toString();
+                    String id_string = editText_AddId.getText().toString();
+                    int id = Integer.parseInt(id_string);
+                    String detectionLocation = editText_AddDetectionLocation.getText().toString();
+
+                    final Zombie new_zombie = new Zombie(id, dateDetection, dateTermination, name, gender, detectionLocation, state);
+
+                    /**
+                     * Aqui é criado um DialogAlert que pergunta ao utilizador se pretende mesmo adicionar este Zombie
+                     * A mensagem é diferente caso a atividade tenha sido criada com o intuito de adicionar
+                     * ou de editar
+                     */
+                    final AlertDialog.Builder editConfirmation = new AlertDialog.Builder(AddActivity.this);
+                    if (edit) {
+                        editConfirmation.setTitle(R.string.edit_zombie);
+                        editConfirmation.setMessage(R.string.confirm_edit_zombie);
+                    } else {
+                        editConfirmation.setTitle(R.string.add_zombie);
+                        editConfirmation.setMessage(R.string.confirm_add_zombie);
+                    }
+
+                    editConfirmation.setPositiveButton(
+                            R.string.yes,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    /**
+                                     * Se o utilizador pretender adicionar o novo Zombie, cria-se um novo
+                                     * Intent para enviar um Zombie (Adicionar) ou dois (Editar) para a MainActivity
+                                     */
+                                    Intent i = new Intent();
+                                    i.putExtra(PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE, new_zombie);
+                                    if (edit) {
+                                        i.putExtra(PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE, old_zombie);
+                                    }
+                                    MediaPlayer sound = MediaPlayer.create(AddActivity.this, R.raw.zombie_add);
+                                    sound.start();
+                                    setResult(RESULT_OK, i);
+                                    finish();
+                                }
+                            });
+
+                    editConfirmation.setNegativeButton(
+                            R.string.no,
+                            new DialogInterface.OnClickListener() {
+                                /**
+                                 * Se o utiliozador pressionar "Não", o Zombie não é adicionado e continua
+                                 * na mesma atividade
+                                 */
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+                    editConfirmation.show();
+
+                } else {
+                    Toast.makeText(this, R.string.id_9_digit, Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            Toast.makeText(this, R.string.empty_fields, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Quando se pressiona o botão da data de Deteção, cria-se um DialogFragment que permite ao
+     * utilizador selecionar a data pretendida
+     */
+    public void DateDetectionOnClick(View view) {
+        DialogFragment newFragment = new DatePickerFragment();
+        Bundle args = new Bundle();
+        args.putInt("detection", 1);
+        args.putSerializable("date", dateDetection);
+        newFragment.setArguments(args);
+        newFragment.show(getFragmentManager(), "Date Picker");
+    }
+
+    /**
+     * Quando se pressiona o botão da data de Terminação, cria-se um DialogFragment que permite ao
+     * utilizador selecionar a data pretendida
+     */
+    public void DateTerminationOnClick(View view) {
+        DialogFragment newFragment = new DatePickerFragment();
+        Bundle args = new Bundle();
+        args.putInt("detection", 2);
+        args.putSerializable("date", dateTermination);
+        newFragment.setArguments(args);
+        newFragment.show(getFragmentManager(), "Date Picker");
+    }
+
+    /**
+     * Método chamado a partir da classe DatePickerFragment que permite atualizar a data de Deteção
+     */
+    public void setDateDetection(GregorianCalendar dateDetection) {
+        GregorianCalendar now = new GregorianCalendar();
+
+        /**
+         * Caso a data introduzida for válida (no passado ou presente), atualiza a data de Deteção
+         * e coloca-a de forma formatada na TextView
+         */
+        if (dateDetection.compareTo(now) <= 0) {
+            this.dateDetection = dateDetection;
+
+            SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy");
+            format.setCalendar(dateDetection);
+            String dateFormatted = format.format(dateDetection.getTime());
+
+            TextView detectionDate_Text = (TextView) findViewById(R.id.textView_DetectionDate);
+            detectionDate_Text.setText(dateFormatted);
+
+        }
+        /**
+         * Caso contrário alerta o utilizador
+         */
+        else {
+            Toast.makeText(this, R.string.invalid_date, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Método chamado a partir da classe DatePickerFragment que permite atualizar a data de Terminação
+     */
+    public void setDateTermination(GregorianCalendar dateTermination) {
+        GregorianCalendar now = new GregorianCalendar();
+
+        /**
+         * Caso a data introduzida for válida (no passado ou presente), atualiza a data de Terminação
+         * e coloca-a de forma formatada na TextView
+         */
+        if (dateTermination.compareTo(now) <= 0) {
+            this.dateTermination = dateTermination;
+
+            SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy");
+            format.setCalendar(dateTermination);
+            String dateFormatted = format.format(dateTermination.getTime());
+
+            TextView terminationDate_Text = (TextView) findViewById(R.id.textView_TerminationDate);
+            terminationDate_Text.setText(dateFormatted);
+        }
+        /**
+         * Caso contrário alerta o utilizador
+         */
+        else {
+            Toast.makeText(this, getString(R.string.invalid_date), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Guarda o estado dos campos quando a orientação do ecrã é alterada
+     */
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state
+        savedInstanceState.putSerializable("dateDetection", dateDetection);
+        savedInstanceState.putSerializable("dateTermination", dateTermination);
+        savedInstanceState.putString("gender", gender);
+        savedInstanceState.putString("state", state);
+        savedInstanceState.putBoolean("edit", edit);
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    /**
+     * Carrega o estado dos campos quando a orientação do ecrã é alterada
+     */
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Always call the superclass so it can restore the view hierarchy
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore state members from saved instance
+        dateDetection = (GregorianCalendar) savedInstanceState.getSerializable("dateDetection");
+        dateTermination = (GregorianCalendar) savedInstanceState.getSerializable("dateTermination");
+        gender = savedInstanceState.getString("gender");
+        state = savedInstanceState.getString("state");
+        edit = savedInstanceState.getBoolean("edit");
+
+        GregorianCalendar dateVerifier = new GregorianCalendar(10, 1, 1);
+        SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy");
+        format.setCalendar(dateDetection);
+        String dateFormatted = format.format(dateDetection.getTime());
+        TextView detectionDate_Text = (TextView) findViewById(R.id.textView_DetectionDate);
+        if (!dateDetection.equals(dateVerifier)) {
+            detectionDate_Text.setText(dateFormatted);
+        } else {
+            detectionDate_Text.setText(R.string.no_date_yet);
+        }
+
+        format.setCalendar(dateTermination);
+        dateFormatted = format.format(dateTermination.getTime());
+        TextView terminationDate_Text = (TextView) findViewById(R.id.textView_TerminationDate);
+        if (!dateTermination.equals(dateVerifier)) {
+            terminationDate_Text.setText(dateFormatted);
+        } else {
+            terminationDate_Text.setText(R.string.no_date_yet);
+        }
+    }
+}
+
+########################## - DatePickerFragment - #############################
+
+package pt.ipleiria.zombienomicon;
+
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.os.Bundle;
+import android.widget.DatePicker;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+/**
+ * Classe usada para inserir datas
+ */
+public class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener {
+    public GregorianCalendar date;
+
+    /**
+     * Construtor da classe
+     */
+    public DatePickerFragment() {
+    }
+
+    /**
+     * Método que define a data inicial no Dialog
+     * Quando se cria o Dialog a data inicial é a data atual
+     */
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+        int year, month, day;
+        GregorianCalendar dateVerifier = new GregorianCalendar(10, 1, 1);
+
+        /**
+         * Caso a data recebida seja não nula e diferente da data inicial, o DatePicker é inicializado com essa data
+         */
+        if (getArguments().getSerializable("date") != null && (!(getArguments().getSerializable("date")).equals(dateVerifier))) {
+            year = ((GregorianCalendar) getArguments().getSerializable("date")).get(Calendar.YEAR);
+            month = ((GregorianCalendar) getArguments().getSerializable("date")).get(Calendar.MONTH);
+            day = ((GregorianCalendar) getArguments().getSerializable("date")).get(Calendar.DAY_OF_MONTH);
+            return new DatePickerDialog(getActivity(), this, year, month, day);
+        }
+
+        /**
+         * Caso contrário inicia com a data atual
+         */
+        final Calendar c = Calendar.getInstance();
+        year = c.get(Calendar.YEAR);
+        month = c.get(Calendar.MONTH);
+        day = c.get(Calendar.DAY_OF_MONTH);
+
+        return new DatePickerDialog(getActivity(), this, year, month, day);
+    }
+
+    /**
+     * Método que permite aceder a métodos noutras classes dependendo da classe (e método) que criou
+     * este DatePickerFragment
+     */
+    @Override
+    public void onDateSet(DatePicker view, int year, int month, int day) {
+        int var = getArguments().getInt("detection");
+        date = new GregorianCalendar(year, month, day);
+
+        switch (var) {
+            case 1:
+                /**
+                 * Caso o DatePicker tenha sido chamado na AddActivity com o objetivo de escolher a
+                 * data de deteção, chama-se o método setDateDetection
+                 */
+                ((AddActivity) getActivity()).setDateDetection(date);
+                break;
+            case 2:
+                /**
+                 * Caso o DatePicker tenha sido chamado na AddActivity com o objetivo de escolher a
+                 * data de terminação, chama-se o método setDateDetection
+                 */
+                ((AddActivity) getActivity()).setDateTermination(date);
+                break;
+            case 3:
+                /**
+                 * Caso o DatePicker tenha sido chamado na Search com o objetivo de escolher a
+                 * data a pesquisar, chama-se o método seacrhZombiesDate
+                 */
+                ((SearchActivity) getActivity()).searchZombiesDate(date);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+########################## - MainActivity - #############################
+
+package pt.ipleiria.zombienomicon;
+
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.Toast;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import pt.ipleiria.zombienomicon.Model.Singleton;
+import pt.ipleiria.zombienomicon.Model.Zombie;
+import pt.ipleiria.zombienomicon.Model.Zombienomicon;
+
+/**
+ * Atividade principal principal
+ */
+public class MainActivity extends AppCompatActivity {
+    public static final String PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE = "pt.ipleiria.zombienomicon.edit.zombie";
+    public static final int REQUEST_CODE_SEARCH = 3;
+    private static final int REQUEST_CODE_ADD = 1;
+    private static final int REQUEST_CODE_EDIT = 2;
+    private Zombienomicon zombienomicon;
+    private ArrayList<Zombie> zombies;
+    private String saveFile = "zombienomicon.bin";
+    private ListView zombie_list;
+    private SimpleAdapter simpleadapter;
+    private MenuItem item_all;
+    private MenuItem item_dead;
+    private MenuItem item_undead;
+
+    /**
+     * Método de callback chamado quando se cria a atividade
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Singleton.getInstance().setContext(getApplicationContext());
+        /**
+         * Tenta fazer o load da lista contida no ficheiro Zombienomicon.bin. Caso não consiga, pode
+         * dever-se ao facto de Zombinomicon.bin não ter sido criada ou ao facto de ter ocorrido um
+         * erro ao ler do ficheiro.
+         */
+        try {
+            FileInputStream fileInputStream = openFileInput(saveFile);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            Singleton.getInstance().setZombienomicon((Zombienomicon) objectInputStream.readObject());
+            objectInputStream.close();
+            fileInputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(MainActivity.this, R.string.no_file_error, Toast.LENGTH_LONG).show();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(MainActivity.this, R.string.read_error, Toast.LENGTH_LONG).show();
+        }
+
+        /**
+         * Atribui à variavel Zombienomicon desta atividade a Zombienomicon do Singleton
+         */
+        zombienomicon = Singleton.getInstance().getZombienomicon();
+
+        /**
+         * Cria a toolbar e atribui-a à Atividade
+         */
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+
+        /**
+         * Cria a referencia para a listview
+         * Cria um adapter para a lista de zombies
+         * Associa o adapter à lista de zombies
+         */
+        zombies = zombienomicon.getZombies();
+        createSimpleAdapter(zombies);
+        zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+        zombie_list.setAdapter(simpleadapter);
+
+        /**
+         * Quando se clica num Item da ListView Mostra uma AlerDialog com todos os dados do zombie
+         * Caso se carregue no botão edit, a AddActivity é iniciada com esses dados
+         */
+        zombie_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                HashMap<String, String> h = (HashMap<String, String>) parent.getItemAtPosition(position);
+                final Zombie zombie = zombienomicon.searchZombieByID(Integer.parseInt(h.get("id")));
+
+                AlertDialog.Builder editConfirmation = new AlertDialog.Builder(MainActivity.this);
+                editConfirmation.setTitle(R.string.edit_zombie);
+                editConfirmation.setMessage(zombie.toString());
+                editConfirmation.setPositiveButton(
+                        R.string.edit,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent i = new Intent(MainActivity.this, AddActivity.class);
+                                i.putExtra(PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE, zombie);
+                                startActivityForResult(i, REQUEST_CODE_EDIT);
+                            }
+                        });
+
+                editConfirmation.setNegativeButton(
+                        R.string.cancel,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                editConfirmation.show();
+            }
+        });
+
+        /**
+         * Quando se faz um long click  num Item da ListView cria-se um AlertDialog a perguntar ao
+         * utilizador se pretende eliminar o Zombie nessa posição
+         * Caso o utilizador escolha "SIM", o Zombie é eliminado; caso escolha "NÂO" contrário não
+         * acontece nada
+         */
+        zombie_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                AlertDialog.Builder deleteConfirmation = new AlertDialog.Builder(MainActivity.this);
+                deleteConfirmation.setTitle(R.string.delete_zombie);
+                deleteConfirmation.setMessage(R.string.confirm_delete_zombie);
+                deleteConfirmation.setPositiveButton(
+                        R.string.yes,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                /**
+                                 * Dependendo de qual o botão vísivel a lista de Zombies é diferente,
+                                 * por isso é necessário separa-los.
+                                 */
+
+                                if (item_all.isVisible()) {
+                                    zombies = zombienomicon.getZombies();
+                                    int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
+                                    Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
+                                    createSimpleAdapter(zombienomicon.getZombies());
+                                    zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+                                    zombie_list.setAdapter(simpleadapter);
+                                } else if (item_dead.isVisible()) {
+                                    zombies = zombienomicon.searchZombieByState("Dead");
+                                    int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
+                                    Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
+                                    createSimpleAdapter(zombienomicon.searchZombieByState("Dead"));
+                                    zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+                                    zombie_list.setAdapter(simpleadapter);
+                                } else {
+                                    zombies = zombienomicon.searchZombieByState("Undead");
+                                    int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
+                                    Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
+                                    createSimpleAdapter(zombienomicon.searchZombieByState("Undead"));
+                                    zombie_list = (ListView) findViewById(R.id.listView_Zombies);
+                                    zombie_list.setAdapter(simpleadapter);
+                                }
+
+                            }
+                        });
+
+                deleteConfirmation.setNegativeButton(
+                        R.string.no,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                deleteConfirmation.show();
+
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Método de callback chamado quando se seleciona um dos botões do menu
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            /**
+             * Caso o botão pressionado seja Search inicia a SearchActivity e envia a lista de Zombies
+             */
+            case R.id.zombie_search:
+                Intent i = new Intent(this, SearchActivity.class);
+                startActivityForResult(i, REQUEST_CODE_SEARCH);
+                break;
+            /**
+             * Caso o botão pressionado seja Add inicia a AddActivity com o objetivo de receber um Zombie para adicionar à lista
+             */
+            case R.id.zombie_add:
+                Intent i2 = new Intent(this, AddActivity.class);
+                startActivityForResult(i2, REQUEST_CODE_ADD);
+                break;
+            /**
+             * Caso o botão visivel seja o zombie_all (mão e RIP) a listview apresenta todos os Zombies.
+             * Quando se clica no botão, o botão visivel passa a ser zombie_dead (RIP) e a listview
+             * passa a mostrar todos os Zombies cujo estado seja "Dead"
+             */
+            case R.id.zombie_all:
+                item_all.setVisible(false);
+                item_dead.setVisible(true);
+                item_undead.setVisible(false);
+                createSimpleAdapter(zombienomicon.searchZombieByState("Dead"));
+                zombie_list.setAdapter(simpleadapter);
+                break;
+            /**
+             * Caso o botão visivel seja o zombie_dead (RIP) a listview apresenta todos os Zombies
+             * cujo estado seja "Dead".
+             * Quando se clica no botão, o botão visivel passa a ser zombie_undead (mão) e a listview
+             * passa a mostrar todos os Zombies cujo estado seja "Undead"
+             */
+            case R.id.zombie_dead:
+                item_all.setVisible(false);
+                item_dead.setVisible(false);
+                item_undead.setVisible(true);
+                createSimpleAdapter(zombienomicon.searchZombieByState("Undead"));
+                zombie_list.setAdapter(simpleadapter);
+                break;
+            /**
+             * Caso o botão visivel seja o zombie_undead (mão) a listview apresenta todos os Zombies
+             * cujo estado seja "Undead".
+             * Quando se clica no botão, o botão visivel passa a ser zombie_all(mão e RIP) e a listview
+             * passa a mostrar todos os Zombies
+             */
+            case R.id.zombie_undead:
+                item_all.setVisible(true);
+                item_dead.setVisible(false);
+                item_undead.setVisible(false);
+                createSimpleAdapter(zombienomicon.getZombies());
+                zombie_list.setAdapter(simpleadapter);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Método de callback chamado quando uma atividade devolve algo
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        /**
+         * Caso o requestCode recebido seja da AddActivity (para adicionar), coloca o Zombie recebido na lista
+         */
+        if (requestCode == REQUEST_CODE_ADD) {
+            if (resultCode == RESULT_OK) {
+                try {
+                    Zombie zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
+                    zombienomicon.addZombie(zombie);
+                    Singleton.getInstance().setZombienomicon(zombienomicon);
+
+                    /**
+                     * Quando se volta de adicionar, apresenta novamente a lista completa dos Zombies
+                     */
+                    createSimpleAdapter(zombienomicon.getZombies());
+                    zombie_list.setAdapter(simpleadapter);
+
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        /**
+         * Caso o requestCode recebido seja da AddActivity(para editar), altera os parâmetros do Zombie pretendido
+         */
+        if (requestCode == REQUEST_CODE_EDIT) {
+            if (resultCode == RESULT_OK) {
+                try {
+                    Zombie new_zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
+                    Zombie old_zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE);
+                    zombienomicon.editZombie(new_zombie, old_zombie);
+                    Singleton.getInstance().setZombienomicon(zombienomicon);
+
+                    createSimpleAdapter(zombienomicon.getZombies());
+                    zombie_list.setAdapter(simpleadapter);
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(this, R.string.id_already_exists, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        /**
+         * Caso o requestCode recebido seja da SearchActivity apenas atualiza a lista
+         */
+        if (requestCode == REQUEST_CODE_SEARCH) {
+            if (resultCode == RESULT_CANCELED) {
+
+                createSimpleAdapter(zombienomicon.getZombies());
+                zombie_list.setAdapter(simpleadapter);
+            }
+        }
+    }
+
+    /**
+     * Método de callback que permite guardar a Zombienomicon atual no ficheiro zombienomicon.bin
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            FileOutputStream fileOutputStream = openFileOutput(saveFile, Context.MODE_PRIVATE);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(zombienomicon);
+            objectOutputStream.close();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(MainActivity.this, R.string.write_error, Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    /**
+     * Método que permite criar um SimpleAdapter de forma a que em cada Item da ListView apenas apareça
+     * o nome e estado do Zombie
+     */
+    private void createSimpleAdapter(ArrayList<Zombie> list) {
+        List<HashMap<String, String>> simpleAdapterData = new ArrayList<>();
+
+        for (Zombie z : list) {
+            HashMap<String, String> hashMap = new HashMap<>();
+
+            hashMap.put("name", z.getName());
+            hashMap.put("state", z.getState_dead());
+            hashMap.put("id", "" + z.getId());
+
+            simpleAdapterData.add(hashMap);
+        }
+
+        String[] from = {"name", "state"};
+        int[] to = {R.id.textView_name, R.id.textView_state};
+        simpleadapter = new SimpleAdapter(getBaseContext(), simpleAdapterData, R.layout.listview_item, from, to);
+    }
+
+    /**
+     * Método de callback chamado quando se cria o menu
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        item_all = menu.findItem(R.id.zombie_all);
+        item_dead = menu.findItem(R.id.zombie_dead);
+        item_undead = menu.findItem(R.id.zombie_undead);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     * Quando volta de outras atividades, coloca como visível o botão de filtro "All"
+     */
+    @Override
+    protected void onRestart() {
+        super.onResume();
+        item_all.setVisible(true);
+        item_dead.setVisible(false);
+        item_undead.setVisible(false);
+
+        createSimpleAdapter(zombienomicon.getZombies());
+        zombie_list.setAdapter(simpleadapter);
+    }
+}
+
+########################## - SearchActivity- #############################
+
+package pt.ipleiria.zombienomicon;
+
+import android.app.DialogFragment;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+
+import pt.ipleiria.zombienomicon.Model.Singleton;
+import pt.ipleiria.zombienomicon.Model.Zombie;
+
+import static pt.ipleiria.zombienomicon.AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE;
+import static pt.ipleiria.zombienomicon.AddActivity.PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE;
+
+/**
+ * Class da atividade activity_search que permite procurar todos os zombies com um determinado nome
+ */
+
+public class SearchActivity extends AppCompatActivity {
+    private ListView list_search;
+    private ArrayList<Zombie> searchedZombies;
+    private ArrayAdapter<Zombie> adapter;
+    private EditText editText_search;
+    private Button button_date;
+    private int spinner_search_position;
+    private int spinner_gender_position;
+    private GregorianCalendar searched_date = new GregorianCalendar(10, 1, 1);
+    private String searched_gender;
+
+    /**
+     * Método de callback chamado quando se cria a atividade
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search);
+
+        list_search = (ListView) findViewById(R.id.listView_search);
+        searchedZombies = new ArrayList<>();
+
+
+        /**
+         * Quando se clica num Item da ListView inicia-se AddActivity para Editar o Zombie
+         */
+
+        list_search.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Zombie z = (Zombie) parent.getItemAtPosition(position);
+                Intent i = new Intent(SearchActivity.this, AddActivity.class);
+                i.putExtra(MainActivity.PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE, z);
+                startActivityForResult(i, MainActivity.REQUEST_CODE_SEARCH);
+            }
+        });
+
+        /**
+         * Quando se faz um long click  num Item da ListView cria-se um AlertDialog a perguntar ao
+         * utilizador se pretende eliminar o Zombie nessa posição
+         * Caso o utilizador escolha "SIM", o Zombie é eliminado; caso escolha "NÂO" contrário não
+         * acontece nada
+         */
+        list_search.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                AlertDialog.Builder deleteConfirmation = new AlertDialog.Builder(SearchActivity.this);
+                deleteConfirmation.setTitle(R.string.delete_zombie);
+                deleteConfirmation.setMessage(R.string.confirm_delete_zombie);
+                deleteConfirmation.setPositiveButton(
+                        R.string.yes,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                /**
+                                 * Visto que a posição na lista pode não corresponder à posição na
+                                 * Zombienomicon, é necessário arranjar essa posiçºao através do ID
+                                 * do Zombie carregado
+                                 */
+                                int zombie_position = Singleton.getInstance().getZombienomicon().searchPositionByID(searchedZombies.get(position).getId());
+                                Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
+                                searchedZombies.remove(position);
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
+
+                deleteConfirmation.setNegativeButton(
+                        R.string.no,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                deleteConfirmation.show();
+                return true;
+            }
+        });
+
+        /**
+         * Cria referência para o spinner
+         * Associa ao spinner um array de items
+         * Cria o adaptador para o spinner e associa-o ao mesmo
+         */
+        Spinner spinner_search = (Spinner) findViewById(R.id.spinner_search);
+        ArrayAdapter<CharSequence> spinner_adapter = ArrayAdapter.createFromResource(this, R.array.search_array, android.R.layout.simple_spinner_item);
+        spinner_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_search.setAdapter(spinner_adapter);
+
+        final Spinner spinner_gender = (Spinner) findViewById(R.id.spinner_gender);
+        ArrayAdapter<CharSequence> gender_spinner_adapter = ArrayAdapter.createFromResource(this, R.array.gender_array, android.R.layout.simple_spinner_item);
+        gender_spinner_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_gender.setAdapter(gender_spinner_adapter);
+
+        /**
+         * Cria um método de callback Listener para quando se carrega num dos Items do spinner
+         */
+        spinner_search.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position_search, long id) {
+                editText_search = (EditText) findViewById(R.id.editText_search);
+                button_date = (Button) findViewById(R.id.button_date);
+
+                Button search_button = (Button) findViewById(R.id.button_search);
+                /**
+                 * Vai buscar qual a posição do Item selecionado no spinner
+                 */
+                spinner_search_position = position_search;
+
+                switch (spinner_search_position) {
+                    case 0: // Search
+                        /**
+                         * Caso seja Search:
+                         *          o botão de procurar está desativado
+                         *          a editText está desativada
+                         *          o spinner de género está invisivel
+                         *          o botão da data esta invisivel
+                         */
+                        searchedZombies.clear();
+                        search_button.setEnabled(false);
+                        editText_search.setEnabled(false);
+                        editText_search.setText("");
+                        spinner_gender.setVisibility(View.INVISIBLE);
+                        editText_search.setVisibility(View.VISIBLE);
+                        editText_search.setHint(R.string.select_search);
+                        break;
+                    case 1: // Search by Id
+                        /**
+                         * Caso seja Search by ID:
+                         *          o botão de procurar está ativo
+                         *          a editText está ativa
+                         *          o spinner de género está invisivel
+                         *          o botão da data esta invisivel
+                         */
+                        searchedZombies.clear();
+                        search_button.setEnabled(true);
+                        editText_search.setEnabled(true);
+                        editText_search.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        editText_search.setText("");
+                        spinner_gender.setVisibility(View.INVISIBLE);
+                        editText_search.setVisibility(View.VISIBLE);
+                        button_date.setVisibility(View.INVISIBLE);
+                        editText_search.setHint(R.string.id_to_search);
+                        /**
+                         * Limita a entrada de texto a 9 digitos
+                         */
+                        editText_search.setFilters(new InputFilter[]{new InputFilter.LengthFilter(9)});
+                        break;
+                    case 2: // Search by Name
+                        /**
+                         * Caso seja Search by Name:
+                         *          o botão de procurar está ativo
+                         *          a editText está ativa
+                         *          o spinner de género está invisivel
+                         *          o botão da data esta invisivel
+                         */
+                        searchedZombies.clear();
+                        search_button.setEnabled(true);
+                        editText_search.setEnabled(true);
+                        editText_search.setInputType(InputType.TYPE_CLASS_TEXT);
+                        editText_search.setText("");
+                        spinner_gender.setVisibility(View.INVISIBLE);
+                        editText_search.setVisibility(View.VISIBLE);
+                        button_date.setVisibility(View.INVISIBLE);
+                        editText_search.setHint(R.string.name_to_search);
+                        /**
+                         * Remove a limitação de entrada imposta no caso anterior
+                         */
+                        editText_search.setFilters(new InputFilter[]{});
+                        break;
+                    case 3: // Search by gender
+                        /**
+                         * Caso seja Search by gender:
+                         *          o botão de procurar está ativo
+                         *          a editText está invisivel
+                         *          o spinner de género está visivel
+                         *          o botão da data esta invisivel
+                         */
+                        searchedZombies.clear();
+                        search_button.setEnabled(true);
+                        button_date.setVisibility(View.INVISIBLE);
+                        spinner_gender.setVisibility(View.VISIBLE);
+                        editText_search.setEnabled(false);
+                        editText_search.setVisibility(View.INVISIBLE);
+                        break;
+                    case 4: // Search by Detection Date
+                        /**
+                         * Caso seja Search by Date:
+                         *          o botão de procurar está ativo
+                         *          a editText está invisivel
+                         *          o spinner de género está invisivel
+                         *          o botão da data esta visivel
+                         */
+                        searchedZombies.clear();
+                        DialogFragment newFragment = new DatePickerFragment();
+                        Bundle args = new Bundle();
+                        args.putInt("detection", 3);
+                        newFragment.setArguments(args);
+                        newFragment.show(getFragmentManager(), "Date Picker");
+
+                        search_button.setEnabled(true);
+                        spinner_gender.setVisibility(View.INVISIBLE);
+                        editText_search.setEnabled(false);
+                        editText_search.setVisibility(View.INVISIBLE);
+                        button_date.setVisibility(View.VISIBLE);
+                        break;
+                    case 5: //Search by All
+                        /**
+                         * Caso seja Search by All:
+                         *          o botão de procurar está ativo
+                         *          a editText está ativa
+                         *          o spinner de género está invisivel
+                         *          o botão da data esta invisivel
+                         */
+                        searchedZombies.clear();
+                        search_button.setEnabled(true);
+                        editText_search.setEnabled(true);
+                        editText_search.setInputType(InputType.TYPE_CLASS_TEXT);
+                        editText_search.setText("");
+                        spinner_gender.setVisibility(View.INVISIBLE);
+                        editText_search.setVisibility(View.VISIBLE);
+                        button_date.setVisibility(View.INVISIBLE);
+                        editText_search.setHint(R.string.name_to_search);
+                        /**
+                         * Remove a limitação de entrada imposta no caso do id
+                         */
+                        editText_search.setFilters(new InputFilter[]{});
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        /**
+         * Spinner do género
+         */
+        spinner_gender.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position_gender, long id) {
+                spinner_gender_position = position_gender;
+
+                switch (spinner_gender_position) {
+                    case 0: // Male
+                        searched_gender = "Male";
+                        break;
+                    case 1: // Female
+                        searched_gender = "Female";
+                        break;
+                    case 2: // Undefined
+                        searched_gender = "Undefined";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+    }
+
+    /**
+     * Método de callback quando se carrega no botão de procurar
+     */
+    public void button_searchOnClick(View view) {
+        EditText editText_search = (EditText) findViewById(R.id.editText_search);
+        String searched_text = editText_search.getText().toString();
+        int var = 0;
+
+        /**
+         * Consoante a posição do spinner, procura nos campos pretendidos
+         */
+        switch (spinner_search_position) {
+            case 1: // Search by Id
+                try {
+                    if (!editText_search.getText().toString().isEmpty()) {
+                        searchedZombies = new ArrayList<>();
+                        searchedZombies = Singleton.getInstance().getZombienomicon().searchZombieContainingId(searched_text);
+                    } else {
+                        var = 1;
+                        Toast.makeText(this, R.string.empty_id, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (IllegalArgumentException e) {
+                    var = 1;
+                    Toast.makeText(SearchActivity.this, R.string.invalid_id, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 2: // Search by Name
+                if (!editText_search.getText().toString().isEmpty()) {
+                    searchedZombies = Singleton.getInstance().getZombienomicon().searchZombieByName(searched_text);
+                } else {
+                    var = 1;
+                    Toast.makeText(this, R.string.empty_name, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 3: // Search by Gender
+                searchedZombies = Singleton.getInstance().getZombienomicon().searchZombieByGender(searched_gender);
+                break;
+            case 4: // Search by Detection Date
+                GregorianCalendar dateVerifier = new GregorianCalendar(10, 1, 1);
+                if (!searched_date.equals(dateVerifier)) {
+                    searchedZombies = Singleton.getInstance().getZombienomicon().searchZombieByDetectionDate(searched_date);
+                } else {
+                    var = 1;
+                    Toast.makeText(this, R.string.empty_date, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 5: // Search by All
+                searchedZombies = Singleton.getInstance().getZombienomicon().searchZombieByAll(searched_text);
+                break;
+            default:
+                break;
+        }
+        /**
+         * Apresenta os resultados da pesquisa na listView
+         */
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, searchedZombies);
+        list_search.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+
+        /**
+         * Caso a lista esteja vazia, envia uma Toast
+         */
+        if (searchedZombies.isEmpty() && var == 0) {
+            Toast.makeText(SearchActivity.this, R.string.list_empty, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Método de callback chamado quando uma atividade devolve algo
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        /**
+         * Visto que os campos de um Zombie podem ser alterados através desta atividade, é necessário
+         * colocar o método onActivityResult.
+         * A edição do Zombie é feita da mesma forma que na MainActivity
+         */
+        if (requestCode == MainActivity.REQUEST_CODE_SEARCH) {
+            if (resultCode == RESULT_OK) {
+                try{
+                Zombie new_zombie = (Zombie) data.getSerializableExtra(PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
+                Zombie old_zombie = (Zombie) data.getSerializableExtra(PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE);
+                Singleton.getInstance().getZombienomicon().editZombie(new_zombie, old_zombie);
+                adapter.notifyDataSetChanged();
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(this, R.string.id_already_exists, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
+    /**
+     * Caso a data escolhida no DatePicker seja no futuro o utilizador é notificado
+     * Só é possivel carregar no botão PROCURAR se a data for aceite
+     */
+    public void searchZombiesDate(GregorianCalendar c) {
+        GregorianCalendar now = new GregorianCalendar();
+        Button searchButton = (Button) findViewById(R.id.button_search);
+
+        if (c.compareTo(now) <= 0) {
+            searched_date = c;
+
+            SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy");
+            format.setCalendar(searched_date);
+            String dateFormatted = format.format(searched_date.getTime());
+            button_date.setText(dateFormatted);
+            searchButton.setEnabled(true);
+        } else {
+            Toast.makeText(this, getString(R.string.invalid_date), Toast.LENGTH_SHORT).show();
+            button_date.setText(R.string.date);
+            searchButton.setEnabled(false);
+        }
+    }
+
+    /**
+     * Caso se carregue no botão "back", a Atividade coloca RESULT_CANCELED, para que na MainActivity
+     * se atualize a listView consoante a Zombienomicon
+     */
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        setResult(RESULT_CANCELED);
+        finish();
+    }
+
+    /**
+     * Quando se carrega no botão da data abre-se um novo datePicker que permite alterar a data
+     * que se pretende procurar
+     */
+    public void ButtonDateOnClick(View view) {
+        DialogFragment newFragment = new DatePickerFragment();
+        Bundle args = new Bundle();
+        args.putInt("detection", 3);
+        args.putSerializable("date", searched_date);
+        newFragment.setArguments(args);
+        newFragment.show(getFragmentManager(), "Date Picker");
+    }
+}
+
+
+# CÓDIGO DOS LAYOUTS XML
+
+########################## - activity_add- #############################
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ic_zombie_background">
+
+    <LinearLayout
+        android:id="@+id/ID_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_ID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/id"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editText_addId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:maxLength="9"
+            tools:ignore="LabelFor" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/button_Add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:onClick="button_AddOnClick"
+        android:text="@string/add" />
+
+    <LinearLayout
+        android:id="@+id/Name_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ID_Layout"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_Name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/name"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editText_addName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            tools:ignore="LabelFor" />
+
+    </LinearLayout>
+
+    <RadioGroup
+        android:id="@+id/radioGroup_state"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/Name_Layout"
+        android:layout_centerInParent="false"
+        android:orientation="horizontal"
+        android:weightSum="1">
+
+        <TextView
+            android:id="@+id/textView_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.27"
+            android:text="@string/state"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/radioButton_Undead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.20"
+            android:text="@string/undead" />
+
+        <RadioButton
+            android:id="@+id/radioButton_Dead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.07"
+            android:text="@string/dead" />
+
+    </RadioGroup>
+
+    <LinearLayout
+        android:id="@+id/DetectionDate_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/radioGroup_gender"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_DetectionDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/no_date_yet"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/DateDetectionButton"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:onClick="DateDetectionOnClick"
+            android:text="@string/set_detection_date" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/TerminationDate_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/DetectionLocation_Layout"
+        android:orientation="horizontal"
+        android:visibility="invisible">
+
+        <TextView
+            android:id="@+id/textView_TerminationDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/no_date_yet"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/TerminationDateButton"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.20"
+            android:onClick="DateTerminationOnClick"
+            android:text="@string/set_termination_date" />
+
+    </LinearLayout>
+
+    <RadioGroup
+        android:id="@+id/radioGroup_gender"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/radioGroup_state"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_gender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gender"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/radioButton_male"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/male" />
+
+        <RadioButton
+            android:id="@+id/radioButton_female"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/female" />
+
+        <RadioButton
+            android:id="@+id/radioButton_undefined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/undefined" />
+
+    </RadioGroup>
+
+    <LinearLayout
+        android:id="@+id/DetectionLocation_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/DetectionDate_Layout"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_DetectionLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/detection_location"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editText_DetectionLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            tools:ignore="LabelFor" />
+    </LinearLayout>
+
+</RelativeLayout>
+
+########################## - activity_main - #############################
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ic_zombie_background"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="pt.ipleiria.zombienomicon.MainActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@android:color/darker_gray"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:titleTextAppearance="@style/Toolbar.TitleText" />
+
+    <ListView
+        android:id="@+id/listView_Zombies"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/my_toolbar" />
+</RelativeLayout>
+
+########################## - activity_search - #############################
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ic_zombie_background">
+
+    <EditText
+        android:id="@+id/editText_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:enabled="false"
+        android:hint="@string/name_to_search"
+        android:inputType="textPersonName"
+        android:visibility="visible" />
+
+    <Spinner
+        android:id="@+id/spinner_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/editText_search"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/editText_search" />
+
+    <ListView
+        android:id="@+id/listView_search"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button_search" />
+
+    <Button
+        android:id="@+id/button_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/spinner_search"
+        android:layout_toEndOf="@+id/spinner_gender"
+        android:enabled="false"
+        android:onClick="button_searchOnClick"
+        android:text="@string/search" />
+
+    <Spinner
+        android:id="@+id/spinner_gender"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/button_search"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/spinner_search"
+        android:visibility="invisible" />
+
+    <Button
+        android:id="@+id/button_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/spinner_search"
+        android:onClick="ButtonDateOnClick"
+        android:text="@string/date"
+        android:visibility="invisible" />
+</RelativeLayout>
+
+########################## - listview_item - #############################
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Large Text"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Small Text"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+    </LinearLayout>
+</LinearLayout>
+
+########################## - menu_main - #############################
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/zombie_all"
+        android:icon="@drawable/ic_zombie_all"
+        android:title="@string/all"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/zombie_undead"
+        android:icon="@drawable/ic_zombie_undead"
+        android:title="@string/undead"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/zombie_dead"
+        android:icon="@drawable/ic_zombie_dead"
+        android:title="@string/dead"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/zombie_add"
+        android:icon="@drawable/ic_zombie_add"
+        android:title="@string/add"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/zombie_search"
+        android:icon="@drawable/ic_zombie_search"
+        android:title="@string/search"
+        app:showAsAction="always" />
+</menu>
+
+########################## - arrays - #############################
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="search_array">
+        <item>Search</item>
+        <item>Id</item>
+        <item>Name</item>
+        <item>Gender</item>
+        <item>Detected Since</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="gender_array">
+        <item>Male</item>
+        <item>Female</item>
+        <item>Undefined</item>
+    </string-array>
+
+</resources>
+
+########################## - strings - #############################
+
+<resources>
+    <string name="app_name">Zombienomicon</string>
+    <string name="add">Add</string>
+    <string name="search">Search</string>
+    <string name="name_to_search">Name to Search</string>
+    <string name="id_to_search">Id to Search</string>
+    <string name="date_to_search">Date to Search</string>
+    <string name="select_search">Select a Search Option</string>
+    <string name="list_empty">No zombies found!</string>
+    <string name="detection_date">"Detection Date: "</string>
+    <string name="detection_location">"Detection Location: "</string>
+    <string name="id">"Id: "</string>
+    <string name="name">"Name: "</string>
+    <string name="termination_date">"Termination Date: "</string>
+    <string name="dead">Dead</string>
+    <string name="female">Female</string>
+    <string name="male">Male</string>
+    <string name="undead">Undead</string>
+    <string name="undefined">Undefined</string>
+    <string name="edit">Edit</string>
+    <string name="delete_zombie">Delete Zombie</string>
+    <string name="confirm_delete_zombie">Are you sure you want to delete this zombie?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="edit_zombie">Edit Zombie</string>
+    <string name="confirm_edit_zombie">Are you sure you want to edit this zombie?</string>
+    <string name="add_zombie">Add Zombie</string>
+    <string name="confirm_add_zombie">Are you sure you want to add this zombie?</string>
+    <string name="invalid_id">Invalid Id</string>
+    <string name="all">All</string>
+    <string name="state">"State: "</string>
+    <string name="gender">"Gender: "</string>
+    <string name="no_date_yet">No date yet!</string>
+    <string name="set_detection_date">Set Detection Date</string>
+    <string name="set_termination_date">Set Termination Date</string>
+    <string name="empty_fields">All fields must be filled</string>
+    <string name="invalid_date">Invalid Date</string>
+    <string name="write_error">Could not write Zombienomicon to internal storage</string>
+    <string name="read_error">Error reading Zombienomicon from internal storage</string>
+    <string name="no_file_error">Could not read Zombienomicon from internal storage (no Zombienomicon yet?)</string>
+    <string name="empty_name">Name field must be filled</string>
+    <string name="id_9_digit">Id must have 9 digits</string>
+    <string name="date">Date</string>
+    <string name="cancel">Cancel</string>
+    <string name="empty_id">Id field must be filled</string>
+    <string name="empty_date">Date field must be filled</string>
+    <string name="id_already_exists">Id already exists!</string>
+</resources>
+
+
+########################## - styles - #############################
+
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="Toolbar.TitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+</resources>

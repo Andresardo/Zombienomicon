@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="search_array">
+        <item>Search</item>
+        <item>Id</item>
+        <item>Name</item>
+        <item>Gender</item>
+        <item>Detected Since</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="gender_array">
+        <item>Male</item>
+        <item>Female</item>
+        <item>Undefined</item>
+    </string-array>
+
+</resources>

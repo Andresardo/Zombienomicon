@@ -1,0 +1,33 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/zombie_all"
+        android:icon="@drawable/ic_zombie_all"
+        android:title="@string/all"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/zombie_undead"
+        android:icon="@drawable/ic_zombie_undead"
+        android:title="@string/undead"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/zombie_dead"
+        android:icon="@drawable/ic_zombie_dead"
+        android:title="@string/dead"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/zombie_add"
+        android:icon="@drawable/ic_zombie_add"
+        android:title="@string/add"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/zombie_search"
+        android:icon="@drawable/ic_zombie_search"
+        android:title="@string/search"
+        app:showAsAction="always" />
+</menu>

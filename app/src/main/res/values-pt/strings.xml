@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zombienomicon</string>
+    <string name="add">Adicionar</string>
+    <string name="dead">Morto</string>
+    <string name="detection_date">"Data de Deteção: "</string>
+    <string name="detection_location">"Localização da Deteção: "</string>
+    <string name="edit">Editar</string>
+    <string name="female">Fêmea</string>
+    <string name="id">"Id: "</string>
+    <string name="list_empty">Nenhum zombie encontrado!</string>
+    <string name="male">Macho</string>
+    <string name="name">"Nome: "</string>
+    <string name="name_to_search">Nome a Procurar</string>
+    <string name="search">Procurar</string>
+    <string name="termination_date">"Data de Terminação: "</string>
+    <string name="undead">Morto-Vivo</string>
+    <string name="undefined">Indefinido</string>
+    <string name="add_zombie">Adicionar Zombie</string>
+    <string name="confirm_add_zombie">Tem a certeza de que quer adicionar este zombie?</string>
+    <string name="confirm_delete_zombie">Tem a certeza de que quer eliminar este zombie?</string>
+    <string name="confirm_edit_zombie">Tem a certeza de que quer editar este zombie?</string>
+    <string name="delete_zombie">Eliminar Zombie</string>
+    <string name="edit_zombie">Editar Zombie</string>
+    <string name="no">Não</string>
+    <string name="yes">Sim</string>
+    <string name="all">Tudo</string>
+    <string name="invalid_id">Id inválido</string>
+    <string name="no_date_yet">Nenhuma data!</string>
+    <string name="state">"Estado: "</string>
+    <string name="set_detection_date">Definir Data de Deteção</string>
+    <string name="set_termination_date">Definir Data de Terminação</string>
+    <string name="empty_fields">Todos os campos tem de ser preenchidos</string>
+    <string name="date_to_search">Data a Procurar</string>
+    <string name="select_search">Selecione uma Opção</string>
+    <string name="id_to_search">Id a Procurar</string>
+    <string name="gender">"Género: "</string>
+    <string name="empty_name">Campo nome tem de ser preenchido</string>
+    <string name="id_9_digit">Id tem de ter 9 dígitos!</string>
+    <string name="invalid_date">Data inválida</string>
+    <string name="no_file_error">Não foi possível ler Zombienomicon a partir do armazenamento interno (nenhum Zombienomicon ainda?)</string>
+    <string name="read_error">Erro na leitura de Zombinomicon a partir do armazenamento interno</string>
+    <string name="write_error">Erro na escrita de Zombinomicon para o armazenamento interno</string>
+    <string name="cancel">Cancelar</string>
+    <string name="date">Data</string>
+    <string name="empty_date">Campo Data tem de ser preenchido</string>
+    <string name="empty_id">Campo Id tem de ser preenchido</string>
+    <string name="id_already_exists">Id já existe!</string>
+
+</resources>
