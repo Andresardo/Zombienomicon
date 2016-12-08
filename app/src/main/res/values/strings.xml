@@ -45,4 +45,12 @@
     <string name="empty_id">Id field must be filled</string>
     <string name="empty_date">Date field must be filled</string>
     <string name="id_already_exists">Id already exists!</string>
+    <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
+    <string name="ok">OK</string>
+    <string name="no_camera_permission">This application cannot run because it does not have the camera permission. The application will now exit.</string>
+    <string name="waiting_start">Waiting for Start!</string>
+    <string name="exterminate">Exterminate</string>
+    <string name="id_received">Id received!</string>
+    <string name="notZombie">This is not a Zombie</string>
+    <string name="read_from_network">Read from network</string>
 </resources>

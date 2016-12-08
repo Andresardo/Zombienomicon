@@ -3,10 +3,14 @@ package pt.ipleiria.zombienomicon;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,15 +23,28 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import pt.ipleiria.zombienomicon.Model.Singleton;
 import pt.ipleiria.zombienomicon.Model.Zombie;
 import pt.ipleiria.zombienomicon.Model.Zombienomicon;
+
+import static pt.ipleiria.zombienomicon.AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE;
 
 /**
  * Atividade principal principal
@@ -37,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_CODE_SEARCH = 3;
     private static final int REQUEST_CODE_ADD = 1;
     private static final int REQUEST_CODE_EDIT = 2;
+    public static final String URL = "http://m.uploadedit.com/ba3s/1481125680307.txt";
     private Zombienomicon zombienomicon;
     private ArrayList<Zombie> zombies;
     private String saveFile = "zombienomicon.bin";
@@ -133,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Quando se faz um long click  num Item da ListView cria-se um AlertDialog a perguntar ao
          * utilizador se pretende eliminar o Zombie nessa posição
-         * Caso o utilizador escolha "SIM", o Zombie é eliminado; caso escolha "NÂO" contrário não
+         * Caso o utilizador escolha "SIM", o Zombie é eliminado; caso escolha "NÂO" não
          * acontece nada
          */
         zombie_list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -211,8 +229,39 @@ public class MainActivity extends AppCompatActivity {
              * Caso o botão pressionado seja Add inicia a AddActivity com o objetivo de receber um Zombie para adicionar à lista
              */
             case R.id.zombie_add:
-                Intent i2 = new Intent(this, AddActivity.class);
-                startActivityForResult(i2, REQUEST_CODE_ADD);
+
+                final AlertDialog.Builder editConfirmation = new AlertDialog.Builder(this);
+
+
+                editConfirmation.setTitle("ZVK Test");
+                editConfirmation.setMessage("Do you want to do the ZVK test?");
+
+
+                editConfirmation.setPositiveButton(
+                        R.string.yes,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent i2 = new Intent(MainActivity.this, FaceActivity.class);
+                                startActivity(i2);
+                            }
+                        });
+
+                editConfirmation.setNegativeButton(
+                        R.string.no,
+                        new DialogInterface.OnClickListener() {
+                            /**
+                             * Se o utiliozador pressionar "Não", o Zombie não é adicionado e continua
+                             * na mesma atividade
+                             */
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent i2 = new Intent(MainActivity.this, AddActivity.class);
+                                startActivityForResult(i2, REQUEST_CODE_ADD);
+                            }
+                        });
+                editConfirmation.setCancelable(true);
+                editConfirmation.show();
+
+
                 break;
             /**
              * Caso o botão visivel seja o zombie_all (mão e RIP) a listview apresenta todos os Zombies.
@@ -251,6 +300,18 @@ public class MainActivity extends AppCompatActivity {
                 item_undead.setVisible(false);
                 createSimpleAdapter(zombienomicon.getZombies());
                 zombie_list.setAdapter(simpleadapter);
+                break;
+            case (R.id.read_network):
+                ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    DownloadContactsTask downloadContactsTask = new DownloadContactsTask();
+                    downloadContactsTask.execute(URL);
+                    Toast.makeText(MainActivity.this,
+                            "Contacts loaded from network resource!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Error: no network connection.", Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -291,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 try {
                     Zombie new_zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
-                    Zombie old_zombie = (Zombie) data.getSerializableExtra(AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE);
+                    Zombie old_zombie = (Zombie) data.getSerializableExtra(PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE);
                     zombienomicon.editZombie(new_zombie, old_zombie);
                     Singleton.getInstance().setZombienomicon(zombienomicon);
 
@@ -382,5 +443,93 @@ public class MainActivity extends AppCompatActivity {
         zombie_list.setAdapter(simpleadapter);
     }
 
+    private class DownloadContactsTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                // establish the connection to the network resource
+                URL url = new URL(urls[0]);
+                HttpURLConnection httpURLConnection =
+                        (HttpURLConnection) url.openConnection();
+                httpURLConnection.setReadTimeout(10000);
+                httpURLConnection.setConnectTimeout(15000);
+                httpURLConnection.setRequestMethod("GET");
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.connect();
+                int responseCode = httpURLConnection.getResponseCode();
+                Log.i("Contacts App", "HTTP response code: " + responseCode);
+                //retrieve the network resource's content
+                InputStream inputStream = httpURLConnection.getInputStream();
+                String contentAsString = readStream(inputStream);
+                inputStream.close();
+                return contentAsString;
+            } catch (IOException e) {
+                return "ERROR: unable to retrieve web page. URL may be invalid.";
+            }
+        }
 
+        @Override
+        protected void onPostExecute(String result) {
+            if (!result.startsWith("ERROR")) {
+                parseZombie(result);
+                createSimpleAdapter(zombienomicon.getZombies());
+                zombie_list.setAdapter(simpleadapter);
+            } else {
+                Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private String readStream(InputStream is) {
+        StringBuilder sb = new StringBuilder(512);
+        try {
+            Reader r = new InputStreamReader(is, "UTF-8");
+            int c = 0;
+            while ((c = r.read()) != -1) {
+                sb.append((char) c);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return sb.toString();
+    }
+
+    private void parseZombie(String text) {
+        String[] lines = text.split("\n");
+        for (String line : lines) {
+            if (line != null && !line.startsWith("#") && line.startsWith("*") && !line.trim().isEmpty()) {
+                String[] split = line.split(":");
+                int zombieId = Integer.parseInt(split[1]);
+                if (zombienomicon.searchZombieByID(zombieId) == null) {
+                    String zombieName = split[2].trim();
+                    String zombieGender = split[3].trim();
+                    String zombieState = split[4].trim();
+                    DateFormat df = new SimpleDateFormat("dd MM yyyy");
+                    Date date = null;
+                    try {
+                        date = df.parse(split[5]);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    GregorianCalendar detectionDate = new GregorianCalendar();
+                    detectionDate.setTime(date);
+                    String detectionLocation = split[6].trim();
+                    GregorianCalendar terminationDate = new GregorianCalendar(10, 1, 1);
+                    if (Objects.equals(zombieState, "Dead")) {
+                        df = new SimpleDateFormat("dd MM yyyy");
+                        date = null;
+                        try {
+                            date = df.parse(split[7]);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        terminationDate = new GregorianCalendar();
+                        terminationDate.setTime(date);
+                    }
+                    Zombie zombie = new Zombie(zombieId, detectionDate, terminationDate, zombieName, zombieGender, detectionLocation, zombieState);
+                    zombienomicon.addZombie(zombie);
+                }
+            }
+        }
+    }
 }

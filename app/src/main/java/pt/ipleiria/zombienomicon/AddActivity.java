@@ -152,6 +152,8 @@ public class AddActivity extends AppCompatActivity {
                         TerminationDate_Layout.setVisibility(View.INVISIBLE);
                         state = "Undead";
                         dateTermination = new GregorianCalendar(10, 1, 1);
+                        TextView terminationDate_Text = (TextView) findViewById(R.id.textView_TerminationDate);
+                        terminationDate_Text.setText(R.string.no_date_yet);
                         break;
                     default:
                         break;
@@ -249,7 +251,6 @@ public class AddActivity extends AppCompatActivity {
                         editConfirmation.setTitle(R.string.add_zombie);
                         editConfirmation.setMessage(R.string.confirm_add_zombie);
                     }
-
                     editConfirmation.setPositiveButton(
                             R.string.yes,
                             new DialogInterface.OnClickListener() {

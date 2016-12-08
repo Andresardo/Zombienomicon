@@ -6,19 +6,19 @@
         android:icon="@drawable/ic_zombie_all"
         android:title="@string/all"
         android:visible="true"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/zombie_undead"
         android:icon="@drawable/ic_zombie_undead"
         android:title="@string/undead"
         android:visible="false"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/zombie_dead"
         android:icon="@drawable/ic_zombie_dead"
         android:title="@string/dead"
         android:visible="false"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/zombie_add"
@@ -30,4 +30,8 @@
         android:icon="@drawable/ic_zombie_search"
         android:title="@string/search"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/read_network"
+        android:title="@string/read_from_network"
+        app:showAsAction="never" />
 </menu>
