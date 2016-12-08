@@ -52,9 +52,9 @@ import static pt.ipleiria.zombienomicon.AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OL
 public class MainActivity extends AppCompatActivity {
     public static final String PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE = "pt.ipleiria.zombienomicon.edit.zombie";
     public static final int REQUEST_CODE_SEARCH = 3;
+    public static final String URL = "http://m.uploadedit.com/ba3s/1481125680307.txt";
     private static final int REQUEST_CODE_ADD = 1;
     private static final int REQUEST_CODE_EDIT = 2;
-    public static final String URL = "http://m.uploadedit.com/ba3s/1481125680307.txt";
     private Zombienomicon zombienomicon;
     private ArrayList<Zombie> zombies;
     private String saveFile = "zombienomicon.bin";
@@ -443,48 +443,11 @@ public class MainActivity extends AppCompatActivity {
         zombie_list.setAdapter(simpleadapter);
     }
 
-    private class DownloadContactsTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... urls) {
-            try {
-                // establish the connection to the network resource
-                URL url = new URL(urls[0]);
-                HttpURLConnection httpURLConnection =
-                        (HttpURLConnection) url.openConnection();
-                httpURLConnection.setReadTimeout(10000);
-                httpURLConnection.setConnectTimeout(15000);
-                httpURLConnection.setRequestMethod("GET");
-                httpURLConnection.setDoInput(true);
-                httpURLConnection.connect();
-                int responseCode = httpURLConnection.getResponseCode();
-                Log.i("Contacts App", "HTTP response code: " + responseCode);
-                //retrieve the network resource's content
-                InputStream inputStream = httpURLConnection.getInputStream();
-                String contentAsString = readStream(inputStream);
-                inputStream.close();
-                return contentAsString;
-            } catch (IOException e) {
-                return "ERROR: unable to retrieve web page. URL may be invalid.";
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            if (!result.startsWith("ERROR")) {
-                parseZombie(result);
-                createSimpleAdapter(zombienomicon.getZombies());
-                zombie_list.setAdapter(simpleadapter);
-            } else {
-                Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     private String readStream(InputStream is) {
         StringBuilder sb = new StringBuilder(512);
         try {
             Reader r = new InputStreamReader(is, "UTF-8");
-            int c = 0;
+            int c;
             while ((c = r.read()) != -1) {
                 sb.append((char) c);
             }
@@ -529,6 +492,43 @@ public class MainActivity extends AppCompatActivity {
                     Zombie zombie = new Zombie(zombieId, detectionDate, terminationDate, zombieName, zombieGender, detectionLocation, zombieState);
                     zombienomicon.addZombie(zombie);
                 }
+            }
+        }
+    }
+
+    private class DownloadContactsTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                // establish the connection to the network resource
+                URL url = new URL(urls[0]);
+                HttpURLConnection httpURLConnection =
+                        (HttpURLConnection) url.openConnection();
+                httpURLConnection.setReadTimeout(10000);
+                httpURLConnection.setConnectTimeout(15000);
+                httpURLConnection.setRequestMethod("GET");
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.connect();
+                int responseCode = httpURLConnection.getResponseCode();
+                Log.i("Contacts App", "HTTP response code: " + responseCode);
+                //retrieve the network resource's content
+                InputStream inputStream = httpURLConnection.getInputStream();
+                String contentAsString = readStream(inputStream);
+                inputStream.close();
+                return contentAsString;
+            } catch (IOException e) {
+                return "ERROR: unable to retrieve web page. URL may be invalid.";
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (!result.startsWith("ERROR")) {
+                parseZombie(result);
+                createSimpleAdapter(zombienomicon.getZombies());
+                zombie_list.setAdapter(simpleadapter);
+            } else {
+                Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
             }
         }
     }

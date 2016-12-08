@@ -377,11 +377,11 @@ public class SearchActivity extends AppCompatActivity {
          */
         if (requestCode == MainActivity.REQUEST_CODE_SEARCH) {
             if (resultCode == RESULT_OK) {
-                try{
-                Zombie new_zombie = (Zombie) data.getSerializableExtra(PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
-                Zombie old_zombie = (Zombie) data.getSerializableExtra(PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE);
-                Singleton.getInstance().getZombienomicon().editZombie(new_zombie, old_zombie);
-                adapter.notifyDataSetChanged();
+                try {
+                    Zombie new_zombie = (Zombie) data.getSerializableExtra(PT_IPLEIRIA_ZOMBIENOMICON_NEW_ZOMBIE);
+                    Zombie old_zombie = (Zombie) data.getSerializableExtra(PT_IPLEIRIA_ZOMBIENOMICOM_OLD_ZOMBIE);
+                    Singleton.getInstance().getZombienomicon().editZombie(new_zombie, old_zombie);
+                    adapter.notifyDataSetChanged();
                 } catch (IllegalArgumentException e) {
                     Toast.makeText(this, R.string.id_already_exists, Toast.LENGTH_SHORT).show();
                 }

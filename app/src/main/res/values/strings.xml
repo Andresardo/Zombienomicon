@@ -53,4 +53,6 @@
     <string name="id_received">Id received!</string>
     <string name="notZombie">This is not a Zombie</string>
     <string name="read_from_network">Read from network</string>
+    <string name="receive_id">Receive ID</string>
+    <string name="button_zvk_start">Start ZVK Test</string>
 </resources>
