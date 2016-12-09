@@ -42,6 +42,8 @@ import java.util.UUID;
 
 import pt.ipleiria.zombienomicon.Model.CameraSourcePreview;
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
+import pt.ipleiria.zombienomicon.Model.Singleton;
+import pt.ipleiria.zombienomicon.Model.Zombie;
 
 public final class FaceActivity extends AppCompatActivity implements SensorEventListener {
     private static final String TAG = "FaceTracker";
@@ -60,12 +62,13 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private int transitionR = 0;
     private int transitionL = 0;
     private BluetoothAdapter mBluetoothAdapter;
-    private int ReceivedId = -1;
+    private int receivedId = -1;
     private int zvk_state = 0;
     private Button button_bluetooth;
     private Button button_zvk;
     private SensorManager mSensorManager;
     private Sensor mSensor;
+    private boolean isDead=true;
 
     //==============================================================================================
     // Activity Methods
@@ -86,6 +89,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_zvk = (Button) findViewById(R.id.button_ZVK);
         textViewTimer.setText(R.string.waiting_start);
 
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
 
         timer = new CountDownTimer(30000, 1000) {
             public void onTick(long millisUntilFinished) {
@@ -93,12 +99,40 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
 
             public void onFinish() {
-                if (blinksL > 4 || blinksR > 4 || ReceivedId == -1) {
-                    zvk_state = 3;
-                    textViewTimer.setText(R.string.exterminate);
-                    mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-                    mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-                    timer.start();
+
+                if(zvk_state==1) {
+                    if (receivedId == -1) {
+                        createCameraSource();
+                        startCameraSource();
+                        zvk_state = 3;
+                        textViewTimer.setText(R.string.exterminate);
+                        timer.start();
+                    }
+                }
+
+                if (zvk_state == 2) {
+                    if (blinksL > 4 || blinksR > 4) {
+                        createCameraSource();
+                        startCameraSource();
+                        zvk_state = 3;
+                        textViewTimer.setText(R.string.exterminate);
+                        timer.start();
+                    } else {
+                        textViewTimer.setText("The subject is human!");
+                    }
+                }
+
+                if(zvk_state==3) {
+                    textViewTimer.setText("You died!");
+                }
+
+                if(zvk_state==4){
+                    if(isDead==false){
+                        textViewTimer.setText("You died!");
+                    } else {
+                        textViewTimer.setText("The Zombie died!");
+                    }
+
                 }
             }
         };
@@ -110,8 +144,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         } else {
             requestCameraPermission();
         }
-
-
     }
 
     /**
@@ -206,8 +238,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             float y = event.values[1];
             float z = event.values[2];
             if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
+                blinksR = 0;
+                blinksL = 0;
+                transitionR = 0;
+                transitionL = 0;
                 zvk_state = 4;
-                textViewTimer.setText(String.format("x:%+6.1f | y:%+6.1f | z:%+6.1f\n", x, y, z));
+                textViewTimer.setText("Movement detection!");
                 timer.cancel();
             }
         }
@@ -368,7 +404,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         res = data;
                         timer.cancel();
                         if (!Objects.equals(data, "")) {
-                            ReceivedId = Integer.parseInt(data);
+                            receivedId = Integer.parseInt(data);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -405,10 +441,20 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
             builder.setMessage(s);
             builder.create().show();
-            if (ReceivedId != -1) {
+            if (receivedId != -1) {
                 button_bluetooth.setVisibility(View.INVISIBLE);
-                button_zvk.setVisibility(View.VISIBLE);
-                textViewTimer.setText(R.string.id_received);
+                Zombie zombie = null;
+                zombie= Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId);
+                if(zombie == null) {
+                    button_zvk.setVisibility(View.VISIBLE);
+                    textViewTimer.setText(R.string.id_received);
+                }else{
+                    createCameraSource();
+                    startCameraSource();
+                    zvk_state = 3;
+                    textViewTimer.setText(R.string.exterminate);
+                    timer.start();
+                }
             } else {
                 button_bluetooth.setEnabled(true);
 
@@ -490,25 +536,32 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
             if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
                 flagL = 1;
+                transitionL++;
             }
             if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
                 flagL = 0;
-                blinksL++;
+                transitionL++;
             }
 
             if (face.getIsSmilingProbability() > 0.5) {
                 timer.cancel();
                 finish();
             }
+            if(zvk_state==2) {
+                if (transitionR == 2) {
+                    blinksR++;
+                    transitionR = 0;
+                }
 
-            if (transitionR == 2) {
-                blinksR++;
-                transitionR = 0;
+                if (transitionL == 2) {
+                    blinksR++;
+                    transitionL = 0;
+                }
             }
-
-            if (transitionL == 2) {
-                blinksR++;
-                transitionL = 0;
+            if(zvk_state==4){
+                if(transitionL!=0 || transitionR!=0){
+                    isDead=false;
+                }
             }
         }
 
