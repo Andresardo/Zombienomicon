@@ -55,4 +55,11 @@
     <string name="read_from_network">Read from network</string>
     <string name="receive_id">Receive ID</string>
     <string name="button_zvk_start">Start ZVK Test</string>
+    <string name="subject_human">The subject is human!</string>
+    <string name="you_died">You died!</string>
+    <string name="zombie_died">The Zombie died!</string>
+    <string name="movement_detected">Movement detection!</string>
+    <string name="subject_search">Searching for subject!</string>
+    <string name="receive_id_wait">Waiting to receive ID...</string>
+    <string name="subject_scan">Scanning the subject!</string>
 </resources>
