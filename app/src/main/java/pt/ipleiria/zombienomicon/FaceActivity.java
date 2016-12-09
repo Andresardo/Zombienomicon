@@ -127,7 +127,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
 
                 if(zvk_state==4){
-                    if(isDead==false){
+                    if(!isDead){
                         textViewTimer.setText("You died!");
                     } else {
                         textViewTimer.setText("The Zombie died!");
@@ -443,8 +443,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             builder.create().show();
             if (receivedId != -1) {
                 button_bluetooth.setVisibility(View.INVISIBLE);
-                Zombie zombie = null;
-                zombie= Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId);
+                Zombie zombie= Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId);
                 if(zombie == null) {
                     button_zvk.setVisibility(View.VISIBLE);
                     textViewTimer.setText(R.string.id_received);

@@ -8,8 +8,8 @@ android {
         minSdkVersion 19
         targetSdkVersion 24
         multiDexEnabled true
-        dexOptions {
-            javaMaxHeapSize "2g"
+        dexOptions{
+            javaMaxHeapSize "1024m"
         }
         versionCode 1
         versionName "1.0"
