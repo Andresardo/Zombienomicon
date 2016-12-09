@@ -6,25 +6,6 @@
     android:keepScreenOn="true"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textViewTimer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <pt.ipleiria.zombienomicon.Model.CameraSourcePreview
-        android:id="@+id/preview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textViewTimer">
-
-        <pt.ipleiria.zombienomicon.Model.GraphicOverlay
-            android:id="@+id/faceOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </pt.ipleiria.zombienomicon.Model.CameraSourcePreview>
-
     <Button
         android:id="@+id/button_ZVK"
         android:layout_width="match_parent"
@@ -44,5 +25,41 @@
         android:onClick="buttonBluetoothOnClick"
         android:text="@string/receive_id"
         android:visibility="visible" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView_Info"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/button_ZVK"
+        android:visibility="invisible"
+        android:textSize="24sp" />
+
+    <pt.ipleiria.zombienomicon.Model.CameraSourcePreview
+        android:id="@+id/preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
+
+        <pt.ipleiria.zombienomicon.Model.GraphicOverlay
+            android:id="@+id/faceOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </pt.ipleiria.zombienomicon.Model.CameraSourcePreview>
+
+    <TextView
+        android:id="@+id/textView_Timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="43dp"
+        android:textSize="30sp"
+        android:textColor="@color/colorPrimary" />
 
 </RelativeLayout>

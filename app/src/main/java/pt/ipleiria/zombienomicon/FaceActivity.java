@@ -18,6 +18,9 @@ import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -50,10 +53,15 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private static final int RC_HANDLE_GMS = 9001;
     private static final int RC_HANDLE_CAMERA_PERM = 2;
     private static final String MY_UUID = "8bed9cd2-e835-4163-af66-23ae08c9d6b1";
+    private static final String FEEDBACK = "feedback";
+    public static final int STATE_BLUETOOTH = 1;
+    public static final int STATE_TEST = 2;
+    public static final int STATE_KILL = 3;
+    public static final int STATE_VERIFY = 4;
     private CameraSource mCameraSource = null;
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
-    private TextView textViewTimer;
+    private TextView textView_Timer;
     private CountDownTimer timer;
     private int flagR;
     private int flagL;
@@ -69,6 +77,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private boolean isDead=true;
+    private TextView textView_Info;
+    private Handler mHandler;
 
     //==============================================================================================
     // Activity Methods
@@ -82,57 +92,79 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         super.onCreate(icicle);
         setContentView(R.layout.activity_face);
 
-        textViewTimer = (TextView) findViewById(R.id.textViewTimer);
+        textView_Timer = (TextView) findViewById(R.id.textView_Timer);
+        textView_Info = (TextView) findViewById(R.id.textView_Info);
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         button_bluetooth = (Button) findViewById(R.id.button_bluetooth);
         button_zvk = (Button) findViewById(R.id.button_ZVK);
-        textViewTimer.setText(R.string.waiting_start);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
 
-        timer = new CountDownTimer(30000, 1000) {
+        timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
-                textViewTimer.setText("" + millisUntilFinished / 1000);
+                textView_Timer.setText("" + millisUntilFinished / 1000);
             }
 
             public void onFinish() {
-
-                if(zvk_state==1) {
-                    if (receivedId == -1) {
-                        createCameraSource();
-                        startCameraSource();
-                        zvk_state = 3;
-                        textViewTimer.setText(R.string.exterminate);
-                        timer.start();
-                    }
-                }
-
-                if (zvk_state == 2) {
-                    if (blinksL > 4 || blinksR > 4) {
-                        createCameraSource();
-                        startCameraSource();
-                        zvk_state = 3;
-                        textViewTimer.setText(R.string.exterminate);
-                        timer.start();
-                    } else {
-                        textViewTimer.setText("The subject is human!");
-                    }
-                }
-
-                if(zvk_state==3) {
-                    textViewTimer.setText("You died!");
-                }
-
-                if(zvk_state==4){
-                    if(!isDead){
-                        textViewTimer.setText("You died!");
-                    } else {
-                        textViewTimer.setText("The Zombie died!");
-                    }
-
+                android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
+                switch (zvk_state) {
+                    case STATE_TEST:
+                        if (blinksL > 4 || blinksR > 4) {
+                            createCameraSource();
+                            startCameraSource();
+                            zvk_state = STATE_KILL;
+                            textView_Info.setText(R.string.exterminate);
+                            timer.start();
+                        } else {
+                            textView_Info.setText(R.string.subject_human);
+                            editConfirmation.setTitle("The living shall rise!");
+                            editConfirmation.setMessage("The subject is human!");
+                            editConfirmation.setPositiveButton(
+                                    "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            finish();
+                                        }
+                                    });
+                            editConfirmation.setCancelable(false);
+                            editConfirmation.show();
+                        }
+                        break;
+                    case STATE_KILL:
+                        textView_Info.setText(R.string.you_died);
+                        editConfirmation.setTitle("The dead shall rise!");
+                        editConfirmation.setMessage("You died!");
+                        editConfirmation.setPositiveButton(
+                                "OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        finish();
+                                    }
+                                });
+                        editConfirmation.setCancelable(false);
+                        editConfirmation.show();
+                        break;
+                    case STATE_VERIFY:
+                        if (isDead) {
+                            textView_Info.setText(R.string.zombie_died);
+                            editConfirmation.setTitle("The living shall rise!");
+                            editConfirmation.setMessage("The Zombie died!");
+                            editConfirmation.setPositiveButton(
+                                    "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            finish();
+                                        }
+                                    });
+                            editConfirmation.setCancelable(false);
+                            editConfirmation.show();
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
         };
@@ -189,6 +221,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         FaceDetector detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .setProminentFaceOnly(true)
+                .setMode(FaceDetector.ACCURATE_MODE)
                 .build();
 
         detector.setProcessor(
@@ -212,6 +245,19 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedFps(30.0f)
                 .build();
+
+        mHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+
+                String feedback = msg.getData().getString(FEEDBACK);
+
+                if (feedback != null) {
+                    textView_Info.setText(feedback);
+                }
+            }
+        };
     }
 
     @Override
@@ -233,7 +279,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (zvk_state == 3) {
+        if (zvk_state == STATE_KILL) {
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
@@ -242,8 +288,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 blinksL = 0;
                 transitionR = 0;
                 transitionL = 0;
-                zvk_state = 4;
-                textViewTimer.setText("Movement detection!");
+                zvk_state = STATE_VERIFY;
+                textView_Info.setText(R.string.movement_detected);
                 timer.cancel();
             }
         }
@@ -342,10 +388,13 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonZVKOnClick(View view) {
-        zvk_state = 2;
+        zvk_state = STATE_TEST;
         createCameraSource();
         startCameraSource();
-        button_zvk.setEnabled(false);
+        button_zvk.setVisibility(View.INVISIBLE);
+        textView_Info.setText(R.string.subject_search);
+        textView_Info.setVisibility(View.VISIBLE);
+
     }
 
     public void buttonBluetoothOnClick(View view) {
@@ -362,9 +411,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             startActivity(enableBtIntent);
 
         } else {
-            zvk_state = 1;
-            button_bluetooth.setEnabled(false);
-            Toast.makeText(this, "Waiting to receive ID...", Toast.LENGTH_SHORT).show();
+            zvk_state = STATE_BLUETOOTH;
+            button_bluetooth.setVisibility(View.INVISIBLE);
+            textView_Info.setVisibility(View.VISIBLE);
+            textView_Info.setText(R.string.receive_id_wait);
             timer.start();
             ServerTask serverTask = new ServerTask();
             serverTask.execute();
@@ -383,6 +433,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
         }
 
+
         @Override
         protected String doInBackground(String... params) {
             BluetoothSocket socket;
@@ -390,10 +441,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
             while (true) { // keep listening until exception occurs or a socket is returned
                 try {
-                    socket = mmServerSocket.accept();
+                    socket = mmServerSocket.accept(10000);
                     Log.i("ServerTask", "Connection established.");
                 } catch (IOException e) {
                     e.printStackTrace();
+                    res = "timeout";
                     break;
                 }
 
@@ -417,6 +469,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         e.printStackTrace();
                     } finally {
                         mmServerSocket = null;
+                        inputStream = null;
                         break; // stop listening
                     }
                 }
@@ -432,31 +485,44 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             if (mmServerSocket != null) {
                 try {
                     mmServerSocket.close();
-                    inputStream.close();
+                    if (inputStream != null) {
+                        try {
+                            inputStream.close();
+                        } catch (IOException closeException) {
+                            closeException.printStackTrace();
+                        }
+                    }
                 } catch (IOException closeException) {
                     closeException.printStackTrace();
                 }
             }
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
-            builder.setMessage(s);
-            builder.create().show();
-            if (receivedId != -1) {
-                button_bluetooth.setVisibility(View.INVISIBLE);
-                Zombie zombie= Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId);
-                if(zombie == null) {
-                    button_zvk.setVisibility(View.VISIBLE);
-                    textViewTimer.setText(R.string.id_received);
-                }else{
-                    createCameraSource();
-                    startCameraSource();
-                    zvk_state = 3;
-                    textViewTimer.setText(R.string.exterminate);
-                    timer.start();
+            if (!Objects.equals(s, "timeout")) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
+                builder.setMessage(s);
+                builder.create().show();
+                if (receivedId != -1) {
+                    button_bluetooth.setVisibility(View.INVISIBLE);
+                    Zombie zombie = Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId);
+                    if (zombie == null) {
+                        button_zvk.setVisibility(View.VISIBLE);
+                        textView_Info.setVisibility(View.INVISIBLE);
+                    } else {
+                        createCameraSource();
+                        startCameraSource();
+                        zvk_state = STATE_KILL;
+                        textView_Info.setText(R.string.exterminate);
+                        timer.start();
+                    }
+                } else {
+                    button_bluetooth.setVisibility(View.VISIBLE);
+                    textView_Info.setVisibility(View.INVISIBLE);
                 }
             } else {
-                button_bluetooth.setEnabled(true);
-
+                createCameraSource();
+                startCameraSource();
+                zvk_state = STATE_KILL;
+                textView_Info.setText(R.string.exterminate);
+                timer.start();
             }
         }
 
@@ -501,7 +567,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onNewItem(int faceId, Face item) {
-            if (zvk_state == 2 || zvk_state == 4) {
+            if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                textView_Info.setText(R.string.subject_scan);
                 mFaceGraphic.setId(faceId);
                 timer.start();
                 if (item.getIsRightEyeOpenProbability() > 0.7) {
@@ -544,9 +611,14 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
             if (face.getIsSmilingProbability() > 0.5) {
                 timer.cancel();
+                Message message = mHandler.obtainMessage();
+                Bundle bundle = new Bundle();
+                bundle.putString(FEEDBACK, "The subject is human!");
+                message.setData(bundle);
+                mHandler.sendMessage(message);
                 finish();
             }
-            if(zvk_state==2) {
+            if (zvk_state == STATE_TEST) {
                 if (transitionR == 2) {
                     blinksR++;
                     transitionR = 0;
@@ -557,9 +629,15 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     transitionL = 0;
                 }
             }
-            if(zvk_state==4){
+            if (zvk_state == STATE_VERIFY) {
                 if(transitionL!=0 || transitionR!=0){
                     isDead=false;
+                    Message message = mHandler.obtainMessage();
+                    Bundle bundle = new Bundle();
+                    bundle.putString(FEEDBACK, "Failed to retire subject");
+                    message.setData(bundle);
+                    mHandler.sendMessage(message);
+                    timer.cancel();
                 }
             }
         }
@@ -581,6 +659,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void onDone() {
             mOverlay.remove(mFaceGraphic);
+            textView_Info.setText(R.string.subject_search);
             blinksR = 0;
             blinksL = 0;
             transitionR = 0;
