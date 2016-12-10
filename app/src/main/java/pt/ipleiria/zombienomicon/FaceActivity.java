@@ -76,9 +76,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private Button button_zvk;
     private SensorManager mSensorManager;
     private Sensor mSensor;
-    private boolean isDead=true;
+    private boolean isDead=false;
+    private boolean isZombie=false;
     private TextView textView_Info;
     private Handler mHandler;
+    private BluetoothServerSocket mmServerSocket;
+
 
     //==============================================================================================
     // Activity Methods
@@ -105,63 +108,36 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
-                textView_Timer.setText("" + millisUntilFinished / 1000);
+                textView_Timer.setText("Time Left:" + millisUntilFinished / 1000);
             }
 
             public void onFinish() {
-                android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
+
                 switch (zvk_state) {
                     case STATE_TEST:
                         if (blinksL > 4 || blinksR > 4) {
+                            isZombie=true;
                             createCameraSource();
                             startCameraSource();
                             zvk_state = STATE_KILL;
                             textView_Info.setText(R.string.exterminate);
                             timer.start();
+                            textView_Timer.setVisibility(View.VISIBLE);
                         } else {
+                            isZombie=false;
                             textView_Info.setText(R.string.subject_human);
-                            editConfirmation.setTitle("The living shall rise!");
-                            editConfirmation.setMessage("The subject is human!");
-                            editConfirmation.setPositiveButton(
-                                    "OK",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            finish();
-                                        }
-                                    });
-                            editConfirmation.setCancelable(false);
-                            editConfirmation.show();
+                            lastMethod();
                         }
                         break;
                     case STATE_KILL:
+                        isDead=false;
                         textView_Info.setText(R.string.you_died);
-                        editConfirmation.setTitle("The dead shall rise!");
-                        editConfirmation.setMessage("You died!");
-                        editConfirmation.setPositiveButton(
-                                "OK",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        finish();
-                                    }
-                                });
-                        editConfirmation.setCancelable(false);
-                        editConfirmation.show();
+                        lastMethod();
                         break;
                     case STATE_VERIFY:
-                        if (isDead) {
-                            textView_Info.setText(R.string.zombie_died);
-                            editConfirmation.setTitle("The living shall rise!");
-                            editConfirmation.setMessage("The Zombie died!");
-                            editConfirmation.setPositiveButton(
-                                    "OK",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            finish();
-                                        }
-                                    });
-                            editConfirmation.setCancelable(false);
-                            editConfirmation.show();
-                        }
+                        isDead=true;
+                        textView_Info.setText("The Zombie has died!");
+                        lastMethod();
                         break;
                     default:
                         break;
@@ -242,7 +218,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_BACK)
+                .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .setRequestedFps(30.0f)
                 .build();
 
@@ -256,6 +232,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 if (feedback != null) {
                     textView_Info.setText(feedback);
                 }
+                textView_Timer.setVisibility(View.INVISIBLE);
+                lastMethod();
             }
         };
     }
@@ -291,6 +269,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 zvk_state = STATE_VERIFY;
                 textView_Info.setText(R.string.movement_detected);
                 timer.cancel();
+                textView_Timer.setVisibility(View.INVISIBLE);
             }
         }
     }
@@ -416,13 +395,13 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             textView_Info.setVisibility(View.VISIBLE);
             textView_Info.setText(R.string.receive_id_wait);
             timer.start();
+            textView_Timer.setVisibility(View.VISIBLE);
             ServerTask serverTask = new ServerTask();
             serverTask.execute();
         }
     }
 
     private class ServerTask extends AsyncTask<String, Void, String> {
-        private BluetoothServerSocket mmServerSocket;
         private InputStream inputStream;
 
         ServerTask() {
@@ -507,11 +486,13 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         button_zvk.setVisibility(View.VISIBLE);
                         textView_Info.setVisibility(View.INVISIBLE);
                     } else {
+                        isZombie=true;
                         createCameraSource();
                         startCameraSource();
                         zvk_state = STATE_KILL;
                         textView_Info.setText(R.string.exterminate);
                         timer.start();
+                        textView_Timer.setVisibility(View.VISIBLE);
                     }
                 } else {
                     button_bluetooth.setVisibility(View.VISIBLE);
@@ -520,9 +501,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             } else {
                 createCameraSource();
                 startCameraSource();
+                isZombie=true;
                 zvk_state = STATE_KILL;
                 textView_Info.setText(R.string.exterminate);
                 timer.start();
+                textView_Timer.setVisibility(View.VISIBLE);
             }
         }
 
@@ -571,6 +554,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 textView_Info.setText(R.string.subject_scan);
                 mFaceGraphic.setId(faceId);
                 timer.start();
+                textView_Timer.setVisibility(View.VISIBLE);
                 if (item.getIsRightEyeOpenProbability() > 0.7) {
                     flagR = 0;
                 } else {
@@ -589,55 +573,57 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
+            if(zvk_state== STATE_TEST || zvk_state==STATE_VERIFY) {
             mOverlay.add(mFaceGraphic);
             mFaceGraphic.updateFace(face);
-            if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
-                flagR = 1;
-                transitionR++;
-            }
-            if (flagR == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
-                flagR = 0;
-                transitionR++;
-            }
-
-            if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
-                flagL = 1;
-                transitionL++;
-            }
-            if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
-                flagL = 0;
-                transitionL++;
-            }
-
-            if (face.getIsSmilingProbability() > 0.5) {
-                timer.cancel();
-                Message message = mHandler.obtainMessage();
-                Bundle bundle = new Bundle();
-                bundle.putString(FEEDBACK, "The subject is human!");
-                message.setData(bundle);
-                mHandler.sendMessage(message);
-                finish();
-            }
-            if (zvk_state == STATE_TEST) {
-                if (transitionR == 2) {
-                    blinksR++;
-                    transitionR = 0;
+                if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
+                    flagR = 1;
+                    transitionR++;
+                }
+                if (flagR == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                    flagR = 0;
+                    transitionR++;
                 }
 
-                if (transitionL == 2) {
-                    blinksR++;
-                    transitionL = 0;
+                if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
+                    flagL = 1;
+                    transitionL++;
                 }
-            }
-            if (zvk_state == STATE_VERIFY) {
-                if(transitionL!=0 || transitionR!=0){
-                    isDead=false;
+                if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                    flagL = 0;
+                    transitionL++;
+                }
+
+                if (face.getIsSmilingProbability() > 0.5) {
+                    isZombie=false;
+                    timer.cancel();
                     Message message = mHandler.obtainMessage();
                     Bundle bundle = new Bundle();
-                    bundle.putString(FEEDBACK, "Failed to retire subject");
+                    bundle.putString(FEEDBACK, "The subject is human!");
                     message.setData(bundle);
                     mHandler.sendMessage(message);
-                    timer.cancel();
+                }
+                if (zvk_state == STATE_TEST) {
+                    if (transitionR == 2) {
+                        blinksR++;
+                        transitionR = 0;
+                    }
+
+                    if (transitionL == 2) {
+                        blinksR++;
+                        transitionL = 0;
+                    }
+                }
+                if (zvk_state == STATE_VERIFY) {
+                    if (transitionL != 0 || transitionR != 0) {
+                        isDead = false;
+                        Message message = mHandler.obtainMessage();
+                        Bundle bundle = new Bundle();
+                        bundle.putString(FEEDBACK, "Failed to retire subject");
+                        message.setData(bundle);
+                        mHandler.sendMessage(message);
+                        timer.cancel();
+                    }
                 }
             }
         }
@@ -658,13 +644,74 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onDone() {
-            mOverlay.remove(mFaceGraphic);
-            textView_Info.setText(R.string.subject_search);
-            blinksR = 0;
-            blinksL = 0;
-            transitionR = 0;
-            transitionL = 0;
-            timer.cancel();
+            if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                mOverlay.remove(mFaceGraphic);
+                textView_Info.setText(R.string.subject_search);
+                blinksR = 0;
+                blinksL = 0;
+                transitionR = 0;
+                transitionL = 0;
+                timer.cancel();
+                textView_Timer.setVisibility(View.INVISIBLE);
+            }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if (mmServerSocket != null) {
+            try {
+                //se ainda estiver aberto fecho a socket, por prevenção
+                mmServerSocket.close();
+            } catch (IOException closeException) {
+
+                closeException.printStackTrace();
+            }
+        }
+        setResult(RESULT_CANCELED);
+        finish();
+    }
+
+
+    public void lastMethod(){
+
+        android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
+        if(!isZombie){
+            editConfirmation.setTitle("The living shall rise!");
+            editConfirmation.setMessage("The subject is human!");
+            editConfirmation.setPositiveButton(
+                    "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            finish();
+                        }
+                    });
+        }else{
+            if(isDead){
+                textView_Info.setText(R.string.zombie_died);
+                editConfirmation.setTitle("The living shall rise!");
+                editConfirmation.setMessage("The Zombie died!");
+                editConfirmation.setPositiveButton(
+                        "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                            }
+                        });
+            }else{
+                editConfirmation.setTitle("The dead shall rise!");
+                editConfirmation.setMessage("You died!");
+                editConfirmation.setPositiveButton(
+                        "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                            }
+                        });
+            }
+        }
+        editConfirmation.setCancelable(false);
+        editConfirmation.show();
     }
 }
