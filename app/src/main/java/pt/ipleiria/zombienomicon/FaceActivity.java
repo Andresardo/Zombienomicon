@@ -81,6 +81,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private TextView textView_Info;
     private Handler mHandler;
     private BluetoothServerSocket mmServerSocket;
+    private String receivedName;
+    private String receivedGender;
 
 
     //==============================================================================================
@@ -435,7 +437,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         res = data;
                         timer.cancel();
                         if (!Objects.equals(data, "")) {
-                            receivedId = Integer.parseInt(data);
+                            String[] split = data.split(":");
+                            receivedId = Integer.parseInt(split[0]);
+                            receivedName = split[1];
+                            receivedGender = split[2];
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -481,8 +486,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 builder.create().show();
                 if (receivedId != -1) {
                     button_bluetooth.setVisibility(View.INVISIBLE);
-                    Zombie zombie = Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId);
-                    if (zombie == null) {
+                    if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) == null) {
                         button_zvk.setVisibility(View.VISIBLE);
                         textView_Info.setVisibility(View.INVISIBLE);
                     } else {
@@ -675,7 +679,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
 
     public void lastMethod(){
-
+        Zombie zombie;
         android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
         if(!isZombie){
             editConfirmation.setTitle("The living shall rise!");
