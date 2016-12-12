@@ -482,9 +482,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
             if (!Objects.equals(s, "timeout")) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
-                builder.setMessage(s);
-                builder.create().show();
+
                 if (receivedId != -1) {
+                    builder.setMessage(s);
+                    builder.create().show();
                     button_bluetooth.setVisibility(View.INVISIBLE);
                     if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) == null) {
                         button_zvk.setVisibility(View.VISIBLE);
@@ -499,6 +500,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         textView_Timer.setVisibility(View.VISIBLE);
                     }
                 } else {
+                    builder.setMessage("Error receiving information. Please restart the test!");
+                    builder.create().show();
                     button_bluetooth.setVisibility(View.VISIBLE);
                     textView_Info.setVisibility(View.INVISIBLE);
                 }
