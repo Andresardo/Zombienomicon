@@ -83,7 +83,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private BluetoothServerSocket mmServerSocket;
     private String receivedName;
     private String receivedGender;
-    private FaceDetector detector;
 
 
     //==============================================================================================
@@ -111,7 +110,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
-                textView_Timer.setText("Time Left:" + millisUntilFinished / 1000);
+                textView_Timer.setText(getString(R.string.time_left) + millisUntilFinished / 1000);
             }
 
             public void onFinish() {
@@ -119,12 +118,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     case STATE_TEST:
                         if (blinksL > 4 || blinksR > 4) {
                             isZombie = true;
-                            createCameraSource();
                             startCameraSource();
                             zvk_state = STATE_KILL;
                             textView_Info.setText(R.string.exterminate);
                             timer.start();
-                            textView_Timer.setVisibility(View.VISIBLE);
                         } else {
                             isZombie = false;
                             textView_Info.setText(R.string.subject_human);
@@ -196,7 +193,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private void createCameraSource() {
 
         Context context = getApplicationContext();
-        detector = new FaceDetector.Builder(context)
+        FaceDetector detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .setProminentFaceOnly(true)
                 .setMode(FaceDetector.ACCURATE_MODE)
@@ -234,7 +231,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 if (feedback != null) {
                     textView_Info.setText(feedback);
                 }
-                textView_Timer.setVisibility(View.INVISIBLE);
                 lastMethod();
             }
         };
@@ -271,7 +267,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 zvk_state = STATE_VERIFY;
                 textView_Info.setText(R.string.movement_detected);
                 timer.cancel();
-                textView_Timer.setVisibility(View.INVISIBLE);
             }
         }
     }
@@ -370,7 +365,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     public void buttonZVKOnClick(View view) {
         zvk_state = STATE_TEST;
-        createCameraSource();
         startCameraSource();
         button_zvk.setVisibility(View.INVISIBLE);
         textView_Info.setText(R.string.subject_search);
@@ -397,7 +391,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             textView_Info.setVisibility(View.VISIBLE);
             textView_Info.setText(R.string.receive_id_wait);
             timer.start();
-            textView_Timer.setVisibility(View.VISIBLE);
             ServerTask serverTask = new ServerTask();
             serverTask.execute();
         }
@@ -492,12 +485,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         textView_Info.setVisibility(View.INVISIBLE);
                     } else {
                         isZombie = true;
-                        createCameraSource();
                         startCameraSource();
                         zvk_state = STATE_KILL;
                         textView_Info.setText(R.string.exterminate);
                         timer.start();
-                        textView_Timer.setVisibility(View.VISIBLE);
                     }
                 } else {
                     builder.setMessage("Error receiving information. Please restart the test!");
@@ -506,13 +497,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     textView_Info.setVisibility(View.INVISIBLE);
                 }
             } else {
-                createCameraSource();
                 startCameraSource();
                 isZombie = true;
                 zvk_state = STATE_KILL;
                 textView_Info.setText(R.string.exterminate);
                 timer.start();
-                textView_Timer.setVisibility(View.VISIBLE);
             }
         }
 
@@ -522,7 +511,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             return s.hasNext() ? s.next() : "";
         }
     }
-
 
     //==============================================================================================
     // Graphic Face Tracker
@@ -558,10 +546,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void onNewItem(int faceId, Face item) {
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
-                textView_Info.setText(R.string.subject_scan);
                 mFaceGraphic.setId(faceId);
                 timer.start();
-                textView_Timer.setVisibility(View.VISIBLE);
                 if (item.getIsRightEyeOpenProbability() > 0.7) {
                     flagR = 0;
                 } else {
@@ -655,13 +641,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         public void onDone() {
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
                 mOverlay.remove(mFaceGraphic);
-                textView_Info.setText(R.string.subject_search);
                 blinksR = 0;
                 blinksL = 0;
                 transitionR = 0;
                 transitionL = 0;
                 timer.cancel();
-                textView_Timer.setVisibility(View.INVISIBLE);
             }
         }
     }
@@ -682,9 +666,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         finish();
     }
 
-
     public void lastMethod() {
-        detector.release();
         android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
         if (!isZombie) {
             editConfirmation.setTitle("The living shall rise!");

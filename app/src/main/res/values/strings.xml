@@ -62,4 +62,5 @@
     <string name="subject_search">Searching for subject!</string>
     <string name="receive_id_wait">Waiting to receive ID...</string>
     <string name="subject_scan">Scanning the subject!</string>
+    <string name="time_left">Time Left:</string>
 </resources>
