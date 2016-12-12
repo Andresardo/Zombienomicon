@@ -46,7 +46,6 @@ import java.util.UUID;
 import pt.ipleiria.zombienomicon.Model.CameraSourcePreview;
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
 import pt.ipleiria.zombienomicon.Model.Singleton;
-import pt.ipleiria.zombienomicon.Model.Zombie;
 
 public final class FaceActivity extends AppCompatActivity implements SensorEventListener {
     private static final String TAG = "FaceTracker";
@@ -58,6 +57,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     public static final int STATE_TEST = 2;
     public static final int STATE_KILL = 3;
     public static final int STATE_VERIFY = 4;
+    private static final int STATE_FINAL = 5;
     private CameraSource mCameraSource = null;
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
@@ -76,13 +76,14 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private Button button_zvk;
     private SensorManager mSensorManager;
     private Sensor mSensor;
-    private boolean isDead=false;
-    private boolean isZombie=false;
+    private boolean isDead = false;
+    private boolean isZombie = false;
     private TextView textView_Info;
     private Handler mHandler;
     private BluetoothServerSocket mmServerSocket;
     private String receivedName;
     private String receivedGender;
+    private FaceDetector detector;
 
 
     //==============================================================================================
@@ -114,11 +115,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
 
             public void onFinish() {
-
                 switch (zvk_state) {
                     case STATE_TEST:
                         if (blinksL > 4 || blinksR > 4) {
-                            isZombie=true;
+                            isZombie = true;
                             createCameraSource();
                             startCameraSource();
                             zvk_state = STATE_KILL;
@@ -126,19 +126,19 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             timer.start();
                             textView_Timer.setVisibility(View.VISIBLE);
                         } else {
-                            isZombie=false;
+                            isZombie = false;
                             textView_Info.setText(R.string.subject_human);
                             lastMethod();
                         }
                         break;
                     case STATE_KILL:
-                        isDead=false;
+                        isDead = false;
                         textView_Info.setText(R.string.you_died);
                         lastMethod();
                         break;
                     case STATE_VERIFY:
-                        isDead=true;
-                        textView_Info.setText("The Zombie has died!");
+                        isDead = true;
+                        textView_Info.setText(R.string.zombie_died);
                         lastMethod();
                         break;
                     default:
@@ -196,7 +196,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private void createCameraSource() {
 
         Context context = getApplicationContext();
-        FaceDetector detector = new FaceDetector.Builder(context)
+        detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .setProminentFaceOnly(true)
                 .setMode(FaceDetector.ACCURATE_MODE)
@@ -220,7 +220,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_FRONT)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedFps(30.0f)
                 .build();
 
@@ -491,7 +491,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         button_zvk.setVisibility(View.VISIBLE);
                         textView_Info.setVisibility(View.INVISIBLE);
                     } else {
-                        isZombie=true;
+                        isZombie = true;
                         createCameraSource();
                         startCameraSource();
                         zvk_state = STATE_KILL;
@@ -508,7 +508,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             } else {
                 createCameraSource();
                 startCameraSource();
-                isZombie=true;
+                isZombie = true;
                 zvk_state = STATE_KILL;
                 textView_Info.setText(R.string.exterminate);
                 timer.start();
@@ -580,9 +580,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
-            if(zvk_state== STATE_TEST || zvk_state==STATE_VERIFY) {
-            mOverlay.add(mFaceGraphic);
-            mFaceGraphic.updateFace(face);
+            if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                mOverlay.add(mFaceGraphic);
+                mFaceGraphic.updateFace(face);
                 if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
                     flagR = 1;
                     transitionR++;
@@ -600,17 +600,17 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     flagL = 0;
                     transitionL++;
                 }
-
-                if (face.getIsSmilingProbability() > 0.5) {
-                    isZombie=false;
-                    timer.cancel();
-                    Message message = mHandler.obtainMessage();
-                    Bundle bundle = new Bundle();
-                    bundle.putString(FEEDBACK, "The subject is human!");
-                    message.setData(bundle);
-                    mHandler.sendMessage(message);
-                }
                 if (zvk_state == STATE_TEST) {
+                    if (face.getIsSmilingProbability() > 0.5) {
+                        isZombie = false;
+                        timer.cancel();
+                        Message message = mHandler.obtainMessage();
+                        Bundle bundle = new Bundle();
+                        bundle.putString(FEEDBACK, "The subject is human!");
+                        message.setData(bundle);
+                        mHandler.sendMessage(message);
+                    }
+
                     if (transitionR == 2) {
                         blinksR++;
                         transitionR = 0;
@@ -630,6 +630,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         message.setData(bundle);
                         mHandler.sendMessage(message);
                         timer.cancel();
+                        zvk_state = STATE_FINAL;
                     }
                 }
             }
@@ -643,6 +644,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void onMissing(FaceDetector.Detections<Face> detectionResults) {
             mOverlay.remove(mFaceGraphic);
+            timer.cancel();
         }
 
         /**
@@ -681,10 +683,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
 
-    public void lastMethod(){
-        Zombie zombie;
+    public void lastMethod() {
+        detector.release();
         android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
-        if(!isZombie){
+        if (!isZombie) {
             editConfirmation.setTitle("The living shall rise!");
             editConfirmation.setMessage("The subject is human!");
             editConfirmation.setPositiveButton(
@@ -694,8 +696,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             finish();
                         }
                     });
-        }else{
-            if(isDead){
+        } else {
+            if (isDead) {
                 textView_Info.setText(R.string.zombie_died);
                 editConfirmation.setTitle("The living shall rise!");
                 editConfirmation.setMessage("The Zombie died!");
@@ -706,7 +708,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                                 finish();
                             }
                         });
-            }else{
+            } else {
                 editConfirmation.setTitle("The dead shall rise!");
                 editConfirmation.setMessage("You died!");
                 editConfirmation.setPositiveButton(
