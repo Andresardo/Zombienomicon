@@ -9,7 +9,7 @@ android {
         targetSdkVersion 24
         multiDexEnabled true
         dexOptions{
-            javaMaxHeapSize "1024m"
+            javaMaxHeapSize "2g"
         }
         versionCode 1
         versionName "1.0"
