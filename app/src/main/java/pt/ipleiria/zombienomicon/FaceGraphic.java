@@ -103,9 +103,12 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         if(isZombie){
             mIdPaint.setColor(Color.RED);
             mBoxPaint.setColor(Color.RED);
+            mFacePositionPaint.setColor(Color.RED);
         } else {
             mIdPaint.setColor(Color.GREEN);
             mBoxPaint.setColor(Color.GREEN);
+            mFacePositionPaint.setColor(Color.GREEN);
+
         }
         canvas.drawText("id: " + mFaceId, x + ID_X_OFFSET, y + ID_Y_OFFSET, mIdPaint);
         canvas.drawText("happiness: " + String.format("%.2f", face.getIsSmilingProbability()), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
