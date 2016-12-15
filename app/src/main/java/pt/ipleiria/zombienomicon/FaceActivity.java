@@ -236,6 +236,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
                 if(!Objects.equals(feedback, "Start test!") && !Objects.equals(feedback, "Subject lost!")) {
                     lastMethod();
+                } else if(Objects.equals(feedback, "Start test!")){
+                    button_start.setVisibility(View.VISIBLE);
                 }
             }
         };
@@ -558,8 +560,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void onNewItem(int faceId, Face item) {
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
-                button_start.setVisibility(View.VISIBLE);
-                button_start.bringToFront();
                 mFaceGraphic.setZombie(isZombie);
                 mFaceGraphic.setId(faceId);
 
