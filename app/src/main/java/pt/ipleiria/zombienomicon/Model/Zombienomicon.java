@@ -157,7 +157,7 @@ public class Zombienomicon implements Serializable {
         if (searchZombieByID(z.getId()) != null) {
             throw new IllegalArgumentException("ID já existe!");
         } else {
-            zombies.add(z);
+            zombies.add(z            );
         }
     }
 

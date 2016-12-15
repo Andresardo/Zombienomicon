@@ -51,6 +51,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
 
     private volatile Face mFace;
     private int mFaceId;
+    private boolean isZombie;
 
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
@@ -99,6 +100,11 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float x = translateX(face.getPosition().x + face.getWidth() / 2);
         float y = translateY(face.getPosition().y + face.getHeight() / 2);
         canvas.drawCircle(x, y, FACE_POSITION_RADIUS, mFacePositionPaint);
+        if(isZombie){
+            mIdPaint.setColor(Color.RED);
+        } else {
+            mIdPaint.setColor(Color.GREEN);
+        }
         canvas.drawText("id: " + mFaceId, x + ID_X_OFFSET, y + ID_Y_OFFSET, mIdPaint);
         canvas.drawText("happiness: " + String.format("%.2f", face.getIsSmilingProbability()), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
         canvas.drawText("right eye: " + String.format("%.2f", face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
@@ -112,5 +118,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float right = x + xOffset;
         float bottom = y + yOffset;
         canvas.drawRect(left, top, right, bottom, mBoxPaint);
+    }
+
+    public void setZombie(boolean isZombie) {
+        this.isZombie = isZombie;
     }
 }

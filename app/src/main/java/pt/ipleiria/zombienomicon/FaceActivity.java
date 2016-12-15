@@ -546,6 +546,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void onNewItem(int faceId, Face item) {
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                mFaceGraphic.setZombie(isZombie);
                 mFaceGraphic.setId(faceId);
                 timer.start();
                 if (item.getIsRightEyeOpenProbability() > 0.7) {
