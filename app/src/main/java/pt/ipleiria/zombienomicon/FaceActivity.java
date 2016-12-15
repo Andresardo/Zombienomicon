@@ -559,6 +559,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         public void onNewItem(int faceId, Face item) {
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
                 button_start.setVisibility(View.VISIBLE);
+                button_start.bringToFront();
                 mFaceGraphic.setZombie(isZombie);
                 mFaceGraphic.setId(faceId);
 
