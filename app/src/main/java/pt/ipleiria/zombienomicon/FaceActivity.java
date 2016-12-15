@@ -586,57 +586,60 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
-            if ((zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) && testing) {
+            if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
                 mOverlay.add(mFaceGraphic);
                 mFaceGraphic.updateFace(face);
-                if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
-                    flagR = 1;
-                    transitionR++;
-                }
-                if (flagR == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
-                    flagR = 0;
-                    transitionR++;
-                }
-
-                if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
-                    flagL = 1;
-                    transitionL++;
-                }
-                if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
-                    flagL = 0;
-                    transitionL++;
-                }
-                if (zvk_state == STATE_TEST) {
-                    if (face.getIsSmilingProbability() > 0.5) {
-                        isZombie = false;
-                        timer.cancel();
-                        Message message = mHandler.obtainMessage();
-                        Bundle bundle = new Bundle();
-                        bundle.putString(FEEDBACK, "The subject is human!");
-                        message.setData(bundle);
-                        mHandler.sendMessage(message);
+                if (testing) {
+                    if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
+                        flagR = 1;
+                        transitionR++;
+                    }
+                    if (flagR == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                        flagR = 0;
+                        transitionR++;
                     }
 
-                    if (transitionR == 2) {
-                        blinksR++;
-                        transitionR = 0;
+                    if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
+                        flagL = 1;
+                        transitionL++;
                     }
+                    if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                        flagL = 0;
+                        transitionL++;
+                    }
+                    if (zvk_state == STATE_TEST) {
+                        if (face.getIsSmilingProbability() > 0.5) {
+                            isZombie = false;
+                            timer.cancel();
+                            Message message = mHandler.obtainMessage();
+                            Bundle bundle = new Bundle();
+                            bundle.putString(FEEDBACK, "The subject is human!");
+                            message.setData(bundle);
+                            mHandler.sendMessage(message);
+                            testing=false;
+                        }
 
-                    if (transitionL == 2) {
-                        blinksR++;
-                        transitionL = 0;
+                        if (transitionR == 2) {
+                            blinksR++;
+                            transitionR = 0;
+                        }
+
+                        if (transitionL == 2) {
+                            blinksR++;
+                            transitionL = 0;
+                        }
                     }
-                }
-                if (zvk_state == STATE_VERIFY) {
-                    if (transitionL != 0 || transitionR != 0) {
-                        isDead = false;
-                        Message message = mHandler.obtainMessage();
-                        Bundle bundle = new Bundle();
-                        bundle.putString(FEEDBACK, "Failed to retire subject");
-                        message.setData(bundle);
-                        mHandler.sendMessage(message);
-                        timer.cancel();
-                        zvk_state = STATE_FINAL;
+                    if (zvk_state == STATE_VERIFY) {
+                        if (transitionL != 0 || transitionR != 0) {
+                            isDead = false;
+                            Message message = mHandler.obtainMessage();
+                            Bundle bundle = new Bundle();
+                            bundle.putString(FEEDBACK, "Failed to retire subject");
+                            message.setData(bundle);
+                            mHandler.sendMessage(message);
+                            timer.cancel();
+                            zvk_state = STATE_FINAL;
+                        }
                     }
                 }
             }
