@@ -74,6 +74,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private int zvk_state = 0;
     private Button button_bluetooth;
     private Button button_zvk;
+    private Button button_start;
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private boolean isDead = false;
@@ -103,6 +104,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         button_bluetooth = (Button) findViewById(R.id.button_bluetooth);
         button_zvk = (Button) findViewById(R.id.button_ZVK);
+        button_start = (Button) findViewById(R.id.Start);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -396,6 +398,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    public void buttonStartOnClick(View view) {
+        timer.start();
+        button_start.setVisibility(View.INVISIBLE);
+        textView_Info.setText("Testing the subject!");
+    }
+
     private class ServerTask extends AsyncTask<String, Void, String> {
         private InputStream inputStream;
 
@@ -546,9 +554,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void onNewItem(int faceId, Face item) {
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                button_start.setVisibility(View.VISIBLE);
                 mFaceGraphic.setZombie(isZombie);
                 mFaceGraphic.setId(faceId);
-                timer.start();
+
                 if (item.getIsRightEyeOpenProbability() > 0.7) {
                     flagR = 0;
                 } else {
@@ -559,6 +568,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 } else {
                     flagL = 1;
                 }
+                Message message = mHandler.obtainMessage();
+                Bundle bundle = new Bundle();
+                bundle.putString(FEEDBACK, "Start test!");
+                message.setData(bundle);
+                mHandler.sendMessage(message);
             }
         }
 
@@ -646,6 +660,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 blinksL = 0;
                 transitionR = 0;
                 transitionL = 0;
+                button_start.setVisibility(View.INVISIBLE);
+                Message message = mHandler.obtainMessage();
+                Bundle bundle = new Bundle();
+                bundle.putString(FEEDBACK, "Subject lost!");
+                message.setData(bundle);
+                mHandler.sendMessage(message);
                 timer.cancel();
             }
         }
