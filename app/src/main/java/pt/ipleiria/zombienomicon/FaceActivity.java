@@ -699,6 +699,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void lastMethod() {
+        Zombie z;
+        GregorianCalendar date;
         android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
         if (!isZombie) {
             editConfirmation.setTitle("The living shall rise!");
@@ -733,8 +735,17 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             }
                         });
             }
-            Zombie z = new Zombie(receivedId,(GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(),receivedName,receivedGender,"leiria","dead");
-            Singleton.getInstance().getZombienomicon().addZombie(z);
+            if(receivedId==-1){
+
+            }else {
+                if(isDead) {
+                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, "leiria", "Dead");
+                } else {
+                    date = new GregorianCalendar(10, 1, 1);
+                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(),date, receivedName, receivedGender, "leiria", "Undead");
+                }
+                Singleton.getInstance().getZombienomicon().addZombie(z);
+            }
         }
         editConfirmation.setCancelable(false);
         editConfirmation.show();
