@@ -196,7 +196,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         FaceDetector detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .setProminentFaceOnly(true)
-                .setMode(FaceDetector.ACCURATE_MODE)
                 .build();
 
         detector.setProcessor(
