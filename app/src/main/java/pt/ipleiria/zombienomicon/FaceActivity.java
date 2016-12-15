@@ -87,6 +87,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private String receivedName;
     private String receivedGender;
     private boolean testing = false;
+    private FaceDetector detector;
 
 
     //==============================================================================================
@@ -199,7 +200,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private void createCameraSource() {
 
         Context context = getApplicationContext();
-        FaceDetector detector = new FaceDetector.Builder(context)
+        detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .setProminentFaceOnly(true)
                 .build();
@@ -737,6 +738,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             if(receivedId==-1){
 
             }else {
+                if(Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId)!=null){
+                    Singleton.getInstance().getZombienomicon().deleteZombie(Singleton.getInstance().getZombienomicon().searchPositionByID(receivedId));
+                }
                 if(isDead) {
                     z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, "leiria", "Dead");
                 } else {
@@ -746,6 +750,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 Singleton.getInstance().getZombienomicon().addZombie(z);
             }
         }
+        detector.release();
         editConfirmation.setCancelable(false);
         editConfirmation.show();
     }
