@@ -62,4 +62,14 @@
         android:textSize="30sp"
         android:textColor="@color/colorPrimary" />
 
+    <Button
+        android:text="Start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/button_ZVK"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/Start"
+        android:visibility="invisible"
+        android:onClick="buttonStartOnClick" />
+
 </RelativeLayout>
