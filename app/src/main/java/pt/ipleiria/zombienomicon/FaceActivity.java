@@ -695,7 +695,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
         }
         setResult(RESULT_CANCELED);
-        finish();
     }
 
     public void lastMethod() {
