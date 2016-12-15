@@ -40,12 +40,14 @@ import com.google.android.gms.vision.face.FaceDetector;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.GregorianCalendar;
 import java.util.Objects;
 import java.util.UUID;
 
 import pt.ipleiria.zombienomicon.Model.CameraSourcePreview;
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
 import pt.ipleiria.zombienomicon.Model.Singleton;
+import pt.ipleiria.zombienomicon.Model.Zombie;
 
 public final class FaceActivity extends AppCompatActivity implements SensorEventListener {
     private static final String TAG = "FaceTracker";
@@ -731,6 +733,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             }
                         });
             }
+            Zombie z = new Zombie(receivedId,(GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(),receivedName,receivedGender,"leiria","dead");
+            Singleton.getInstance().getZombienomicon().addZombie(z);
         }
         editConfirmation.setCancelable(false);
         editConfirmation.show();
