@@ -695,7 +695,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
         }
         setResult(RESULT_CANCELED);
-        finish();
     }
 
     public void lastMethod() {
@@ -733,7 +732,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             }
                         });
             }
-            Zombie z = new Zombie(receivedId,(GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(),receivedName,receivedGender,"leiria","dead");
+            Zombie z = new Zombie(receivedId,(GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(),receivedName,receivedGender,"leiria","Dead");
             Singleton.getInstance().getZombienomicon().addZombie(z);
         }
         editConfirmation.setCancelable(false);
