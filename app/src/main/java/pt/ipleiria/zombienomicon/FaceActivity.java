@@ -510,7 +510,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
             } else {
                 startCameraSource();
-                button_start.setVisibility(View.VISIBLE);
                 isZombie = true;
                 zvk_state = STATE_KILL;
                 textView_Info.setText(R.string.exterminate);
