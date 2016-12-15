@@ -84,6 +84,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private BluetoothServerSocket mmServerSocket;
     private String receivedName;
     private String receivedGender;
+    private boolean testing = false;
 
 
     //==============================================================================================
@@ -129,6 +130,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             textView_Info.setText(R.string.subject_human);
                             lastMethod();
                         }
+                        testing = false;
                         break;
                     case STATE_KILL:
                         isDead = false;
@@ -402,6 +404,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         timer.start();
         button_start.setVisibility(View.INVISIBLE);
         textView_Info.setText("Testing the subject!");
+        testing = true;
     }
 
     private class ServerTask extends AsyncTask<String, Void, String> {
@@ -581,7 +584,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
-            if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+            if ((zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) && testing) {
                 mOverlay.add(mFaceGraphic);
                 mFaceGraphic.updateFace(face);
                 if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
@@ -666,6 +669,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 bundle.putString(FEEDBACK, "Subject lost!");
                 message.setData(bundle);
                 mHandler.sendMessage(message);
+                testing = false;
                 timer.cancel();
             }
         }
