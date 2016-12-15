@@ -234,7 +234,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 if (feedback != null) {
                     textView_Info.setText(feedback);
                 }
-                lastMethod();
+                if(!Objects.equals(feedback, "Start test!") && !Objects.equals(feedback, "Subject lost!")) {
+                    lastMethod();
+                }
             }
         };
     }
@@ -508,6 +510,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
             } else {
                 startCameraSource();
+                button_start.setVisibility(View.VISIBLE);
                 isZombie = true;
                 zvk_state = STATE_KILL;
                 textView_Info.setText(R.string.exterminate);
