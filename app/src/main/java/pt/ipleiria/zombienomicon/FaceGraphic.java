@@ -22,6 +22,7 @@ import android.graphics.Paint;
 import com.google.android.gms.vision.face.Face;
 
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
+import pt.ipleiria.zombienomicon.Model.Weapon;
 
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
@@ -34,17 +35,6 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private static final float ID_X_OFFSET = -50.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
 
-    private static final int COLOR_CHOICES[] = {
-            Color.BLUE,
-            Color.CYAN,
-            Color.GREEN,
-            Color.MAGENTA,
-            Color.RED,
-            Color.WHITE,
-            Color.YELLOW
-    };
-    private static int mCurrentColorIndex = 0;
-
     private Paint mFacePositionPaint;
     private Paint mIdPaint;
     private Paint mBoxPaint;
@@ -52,22 +42,17 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private volatile Face mFace;
     private int mFaceId;
     private boolean isZombie;
+    private Weapon selected_weap;
 
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
 
-        mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
-        final int selectedColor = COLOR_CHOICES[mCurrentColorIndex];
-
         mFacePositionPaint = new Paint();
-        mFacePositionPaint.setColor(selectedColor);
 
         mIdPaint = new Paint();
-        mIdPaint.setColor(selectedColor);
         mIdPaint.setTextSize(ID_TEXT_SIZE);
 
         mBoxPaint = new Paint();
-        mBoxPaint.setColor(selectedColor);
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
     }
@@ -127,5 +112,8 @@ class FaceGraphic extends GraphicOverlay.Graphic {
 
     public void setZombie(boolean isZombie) {
         this.isZombie = isZombie;
+    }
+    public void setWeapon(Weapon weap) {
+        this.selected_weap = weap;
     }
 }
