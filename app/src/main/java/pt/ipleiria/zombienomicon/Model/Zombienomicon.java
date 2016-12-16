@@ -178,4 +178,22 @@ public class Zombienomicon implements Serializable {
         }
         return list;
     }
+    /**
+     * Método que procura e devolve a posição do zombie com um determinado ID
+     */
+    public int searchAvailableID() {
+        int i;
+
+        for(int id=1; id < 999999999; id++) {
+            for ( i = 0; i < zombies.size(); i++) {
+                if (zombies.get(i).getId() == id) {
+                    break;
+                }
+            }
+            if(i==zombies.size()) {
+                return id;
+            }
+        }
+        return -1;
+    }
 }

@@ -108,7 +108,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private ImageButton button_whip;
     private ImageButton button_revolver;
     private ImageButton button_rollinpin;
-    private Weapon selected_weap= Weapon.NONE;
+    private Weapon selected_weap = Weapon.NONE;
     private GraphicOverlay mOverlay;
     private FaceGraphic mFaceGraphic;
 
@@ -508,7 +508,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonSwordOnClick(View view) {
-        selected_weap=Weapon.SWORD;
+        selected_weap = Weapon.SWORD;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weap);
         }
@@ -520,7 +520,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonLightsaberOnClick(View view) {
-        selected_weap=Weapon.LIGHTSABER;
+        selected_weap = Weapon.LIGHTSABER;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weap);
         }
@@ -532,7 +532,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonRevolverOnClick(View view) {
-        selected_weap=Weapon.REVOLVER;
+        selected_weap = Weapon.REVOLVER;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weap);
         }
@@ -545,7 +545,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonFistOnClick(View view) {
-        selected_weap=Weapon.FIST;
+        selected_weap = Weapon.FIST;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weap);
         }
@@ -557,7 +557,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonWhipOnClick(View view) {
-        selected_weap=Weapon.WHIP;
+        selected_weap = Weapon.WHIP;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weap);
         }
@@ -780,19 +780,21 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
                         flagR = 1;
                         transitionR++;
-                    }
-                    if (flagR == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
-                        flagR = 0;
-                        transitionR++;
-                    }
-
-                    if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
-                        flagL = 1;
-                        transitionL++;
-                    }
-                    if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
-                        flagL = 0;
-                        transitionL++;
+                    } else {
+                        if (flagR == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                            flagR = 0;
+                            transitionR++;
+                        } else {
+                            if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
+                                flagL = 1;
+                                transitionL++;
+                            } else {
+                                if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                                    flagL = 0;
+                                    transitionL++;
+                                }
+                            }
+                        }
                     }
                     if (zvk_state == STATE_TEST) {
                         if (face.getIsSmilingProbability() > 0.5) {
@@ -804,28 +806,30 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             message.setData(bundle);
                             mHandler.sendMessage(message);
                             testing = false;
-                        }
+                        } else {
+                            if (transitionR == 2) {
+                                blinksR++;
+                                transitionR = 0;
+                            } else {
 
-                        if (transitionR == 2) {
-                            blinksR++;
-                            transitionR = 0;
+                                if (transitionL == 2) {
+                                    blinksR++;
+                                    transitionL = 0;
+                                }
+                            }
                         }
-
-                        if (transitionL == 2) {
-                            blinksR++;
-                            transitionL = 0;
-                        }
-                    }
-                    if (zvk_state == STATE_VERIFY) {
-                        if (transitionL != 0 || transitionR != 0) {
-                            isDead = false;
-                            Message message = mHandler.obtainMessage();
-                            Bundle bundle = new Bundle();
-                            bundle.putString(FEEDBACK, "Failed to retire subject");
-                            message.setData(bundle);
-                            mHandler.sendMessage(message);
-                            timer.cancel();
-                            zvk_state = STATE_FINAL;
+                    } else {
+                        if (zvk_state == STATE_VERIFY) {
+                            if (transitionL != 0 || transitionR != 0) {
+                                isDead = false;
+                                Message message = mHandler.obtainMessage();
+                                Bundle bundle = new Bundle();
+                                bundle.putString(FEEDBACK, "Failed to retire subject");
+                                message.setData(bundle);
+                                mHandler.sendMessage(message);
+                                timer.cancel();
+                                zvk_state = STATE_FINAL;
+                            }
                         }
                     }
                 }
@@ -924,19 +928,21 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         });
             }
             if (receivedId == -1) {
-
+                receivedName="Unnamed Zombie";
+                receivedGender="Undefined";
+                receivedId = Singleton.getInstance().getZombienomicon().searchAvailableID();
             } else {
                 if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) != null) {
                     Singleton.getInstance().getZombienomicon().deleteZombie(Singleton.getInstance().getZombienomicon().searchPositionByID(receivedId));
                 }
-                if (isDead) {
-                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, "Dead");
-                } else {
-                    date = new GregorianCalendar(10, 1, 1);
-                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), date, receivedName, receivedGender, location, "Undead");
-                }
-                Singleton.getInstance().getZombienomicon().addZombie(z);
             }
+            if (isDead) {
+                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, "Dead");
+            } else {
+                date = new GregorianCalendar(10, 1, 1);
+                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), date, receivedName, receivedGender, location, "Undead");
+            }
+            Singleton.getInstance().getZombienomicon().addZombie(z);
         }
         zvk_state = STATE_FINAL;
         detector.release();
@@ -985,9 +991,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
         try {
-                List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
+            List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
             location = addresses.get(0).getAddressLine(0);
-                Toast.makeText(FaceActivity.this, "Location read.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(FaceActivity.this, "Location read.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(FaceActivity.this, "ERROR: unable to get address from location.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
