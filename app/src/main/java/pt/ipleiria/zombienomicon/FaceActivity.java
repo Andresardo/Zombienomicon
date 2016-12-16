@@ -15,6 +15,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -32,6 +35,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
@@ -41,6 +46,8 @@ import com.google.android.gms.vision.face.FaceDetector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -49,7 +56,7 @@ import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
 import pt.ipleiria.zombienomicon.Model.Singleton;
 import pt.ipleiria.zombienomicon.Model.Zombie;
 
-public final class FaceActivity extends AppCompatActivity implements SensorEventListener {
+public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = "FaceTracker";
     private static final int RC_HANDLE_GMS = 9001;
     private static final int RC_HANDLE_CAMERA_PERM = 2;
@@ -86,8 +93,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private BluetoothServerSocket mmServerSocket;
     private String receivedName;
     private String receivedGender;
+    private String location;
     private boolean testing = false;
     private FaceDetector detector;
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
 
 
     //==============================================================================================
@@ -237,9 +247,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 if (feedback != null) {
                     textView_Info.setText(feedback);
                 }
-                if(!Objects.equals(feedback, "Start test!") && !Objects.equals(feedback, "Subject lost!")) {
+                if (!Objects.equals(feedback, "Start test!") && !Objects.equals(feedback, "Subject lost!")) {
                     lastMethod();
-                } else if(Objects.equals(feedback, "Start test!")){
+                } else if (Objects.equals(feedback, "Start test!")) {
                     button_start.setVisibility(View.VISIBLE);
                 }
             }
@@ -619,7 +629,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             bundle.putString(FEEDBACK, "The subject is human!");
                             message.setData(bundle);
                             mHandler.sendMessage(message);
-                            testing=false;
+                            testing = false;
                         }
 
                         if (transitionR == 2) {
@@ -735,17 +745,21 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             }
                         });
             }
-            if(receivedId==-1){
+            if (receivedId == -1) {
 
-            }else {
-                if(Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId)!=null){
+            } else {
+                buildGoogleApiClient();
+                mGoogleApiClient.connect();
+
+
+                if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) != null) {
                     Singleton.getInstance().getZombienomicon().deleteZombie(Singleton.getInstance().getZombienomicon().searchPositionByID(receivedId));
                 }
-                if(isDead) {
-                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, "leiria", "Dead");
+                if (isDead) {
+                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, "Dead");
                 } else {
                     date = new GregorianCalendar(10, 1, 1);
-                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(),date, receivedName, receivedGender, "leiria", "Undead");
+                    z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), date, receivedName, receivedGender, location, "Undead");
                 }
                 Singleton.getInstance().getZombienomicon().addZombie(z);
             }
@@ -753,5 +767,48 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         detector.release();
         editConfirmation.setCancelable(false);
         editConfirmation.show();
+    }
+
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Toast.makeText(FaceActivity.this, "Google API Client connected.", Toast.LENGTH_SHORT).show();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            Toast.makeText(FaceActivity.this, "ERROR: unable to get last location.", Toast.LENGTH_LONG).show();
+        }
+        getLocation();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Toast.makeText(FaceActivity.this, "Google API Client connection suspended.", Toast.LENGTH_SHORT).show();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Toast.makeText(FaceActivity.this, "Google API Client connection failed.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void getLocation() {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
+            for (Address address : addresses) {
+                location = address.getLocality() + ", " + address.getCountryName();
+            }
+        } catch (IOException e) {
+            Toast.makeText(FaceActivity.this, "ERROR: unable to get address from location.", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
     }
 }
