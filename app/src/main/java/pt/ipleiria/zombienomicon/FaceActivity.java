@@ -443,7 +443,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     public void buttonSwordOnClick(View view) {
         selected_weap=Weapon.SWORD;
-        mFaceGraphic.setWeapon(selected_weap);
+        if (mFaceGraphic != null) {
+            mFaceGraphic.setWeapon(selected_weap);
+        }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -452,7 +454,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     public void buttonLightsaberOnClick(View view) {
         selected_weap=Weapon.LIGHTSABER;
-        mFaceGraphic.setWeapon(selected_weap);
+        if (mFaceGraphic != null) {
+            mFaceGraphic.setWeapon(selected_weap);
+        }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -462,7 +466,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     public void buttonRevolverOnClick(View view) {
         selected_weap=Weapon.REVOLVER;
-        mFaceGraphic.setWeapon(selected_weap);
+        if (mFaceGraphic != null) {
+            mFaceGraphic.setWeapon(selected_weap);
+        }
+
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -472,7 +479,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     public void buttonFistOnClick(View view) {
         selected_weap=Weapon.FIST;
-        mFaceGraphic.setWeapon(selected_weap);
+        if (mFaceGraphic != null) {
+            mFaceGraphic.setWeapon(selected_weap);
+        }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -482,7 +491,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     public void buttonWhipOnClick(View view) {
         selected_weap=Weapon.WHIP;
-        mFaceGraphic.setWeapon(selected_weap);
+        if (mFaceGraphic != null) {
+            mFaceGraphic.setWeapon(selected_weap);
+        }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -492,7 +503,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     public void buttonRollingPinOnClick(View view) {
         selected_weap=Weapon.ROLLINPIN;
-        mFaceGraphic.setWeapon(selected_weap);
+        if (mFaceGraphic != null) {
+            mFaceGraphic.setWeapon(selected_weap);
+        }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -658,6 +671,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         GraphicFaceTracker(GraphicOverlay overlay) {
             mOverlay = overlay;
             mFaceGraphic = new FaceGraphic(overlay);
+            mFaceGraphic.setWeapon(selected_weap);
         }
 
         /**
