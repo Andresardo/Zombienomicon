@@ -771,20 +771,26 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
 
     protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
     }
 
     @Override
     public void onConnected(Bundle bundle) {
         Toast.makeText(FaceActivity.this, "Google API Client connected.", Toast.LENGTH_SHORT).show();
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
+            getLocation();
+        } else {
             Toast.makeText(FaceActivity.this, "ERROR: unable to get last location.", Toast.LENGTH_LONG).show();
         }
-        getLocation();
+
     }
 
     @Override
@@ -802,15 +808,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
         try {
-            if(mLastLocation!=null) {
                 List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
-
-                for (Address address : addresses) {
-                    location = address.getLocality() + ", " + address.getCountryName();
-                }
-            }else{
-                Toast.makeText(FaceActivity.this, "Failed to receive location", Toast.LENGTH_SHORT).show();
-            }
+                location = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
+                Toast.makeText(FaceActivity.this, "Location read.", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
             Toast.makeText(FaceActivity.this, "ERROR: unable to get address from location.", Toast.LENGTH_LONG).show();
