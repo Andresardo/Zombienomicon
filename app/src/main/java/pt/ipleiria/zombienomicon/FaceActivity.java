@@ -233,7 +233,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_BACK)
+                .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .setRequestedFps(30.0f)
                 .build();
 
@@ -802,10 +802,16 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
         try {
-            List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
-            for (Address address : addresses) {
-                location = address.getLocality() + ", " + address.getCountryName();
+            if(mLastLocation!=null) {
+                List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
+
+                for (Address address : addresses) {
+                    location = address.getLocality() + ", " + address.getCountryName();
+                }
+            }else{
+                Toast.makeText(FaceActivity.this, "Failed to receive location", Toast.LENGTH_SHORT).show();
             }
+
         } catch (IOException e) {
             Toast.makeText(FaceActivity.this, "ERROR: unable to get address from location.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
