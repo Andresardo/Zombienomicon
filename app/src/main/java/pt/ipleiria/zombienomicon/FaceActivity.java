@@ -18,6 +18,7 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -141,6 +142,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
 
         timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
@@ -296,14 +299,89 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
-            if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
-                blinksR = 0;
-                blinksL = 0;
-                transitionR = 0;
-                transitionL = 0;
-                zvk_state = STATE_VERIFY;
-                textView_Info.setText(R.string.movement_detected);
-                timer.cancel();
+            switch (selected_weap) {
+                case SWORD:
+                    if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
+                        blinksR = 0;
+                        blinksL = 0;
+                        transitionR = 0;
+                        transitionL = 0;
+                        zvk_state = STATE_VERIFY;
+                        textView_Info.setText(R.string.movement_detected);
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.sword);
+                        sound.start();
+                        timer.cancel();
+                    }
+                    break;
+                case LIGHTSABER:
+                    if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
+                        blinksR = 0;
+                        blinksL = 0;
+                        transitionR = 0;
+                        transitionL = 0;
+                        zvk_state = STATE_VERIFY;
+                        textView_Info.setText(R.string.movement_detected);
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.sword);
+                        sound.start();
+                        timer.cancel();
+                    }
+                    break;
+                case WHIP:
+                    if (x < -15) {
+                        blinksR = 0;
+                        blinksL = 0;
+                        transitionR = 0;
+                        transitionL = 0;
+                        zvk_state = STATE_VERIFY;
+                        textView_Info.setText(R.string.movement_detected);
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.whip);
+                        sound.start();
+                        timer.cancel();
+                    }
+                    break;
+                case REVOLVER:
+                    if (x > 15) {
+                        blinksR = 0;
+                        blinksL = 0;
+                        transitionR = 0;
+                        transitionL = 0;
+                        zvk_state = STATE_VERIFY;
+                        textView_Info.setText(R.string.movement_detected);
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.revolver);
+                        sound.start();
+                        timer.cancel();
+                    }
+                    break;
+                case FIST:
+                    if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
+                        blinksR = 0;
+                        blinksL = 0;
+                        transitionR = 0;
+                        transitionL = 0;
+                        zvk_state = STATE_VERIFY;
+                        textView_Info.setText(R.string.movement_detected);
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.fist);
+                        sound.start();
+                        timer.cancel();
+                    }
+                    break;
+                case ROLLINGPIN:
+                    if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
+                        blinksR = 0;
+                        blinksL = 0;
+                        transitionR = 0;
+                        transitionL = 0;
+                        zvk_state = STATE_VERIFY;
+                        textView_Info.setText(R.string.movement_detected);
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.rollingpin);
+                        sound.start();
+                        timer.cancel();
+                    }
+                    break;
+                default:
+                    Toast.makeText(this, "No weapon is selected!", Toast.LENGTH_SHORT).show();
+                    break;
+
             }
         }
     }
@@ -311,18 +389,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         Toast.makeText(this, sensor.getName() + "accuracy changed to " + accuracy, Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * Releases the resources associated with the camera source, the associated detector, and the
-     * rest of the processing pipeline.
-     */
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mCameraSource != null) {
-            mCameraSource.release();
-        }
     }
 
     /**
@@ -450,6 +516,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         textView_Info.setText(R.string.exterminate);
         timer.start();
         startCameraSource();
+        weaponButtonsInvisible();
     }
 
     public void buttonLightsaberOnClick(View view) {
@@ -502,7 +569,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonRollingPinOnClick(View view) {
-        selected_weap=Weapon.ROLLINPIN;
+        selected_weap = Weapon.ROLLINGPIN;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weap);
         }
@@ -772,8 +839,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onMissing(FaceDetector.Detections<Face> detectionResults) {
-            mOverlay.remove(mFaceGraphic);
-            timer.cancel();
+            if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                mOverlay.remove(mFaceGraphic);
+                timer.cancel();
+            }
         }
 
         /**
@@ -788,7 +857,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 blinksL = 0;
                 transitionR = 0;
                 transitionL = 0;
-                button_start.setVisibility(View.INVISIBLE);
                 Message message = mHandler.obtainMessage();
                 Bundle bundle = new Bundle();
                 bundle.putString(FEEDBACK, "Subject lost!");
@@ -811,6 +879,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
                 closeException.printStackTrace();
             }
+        }
+        if (mCameraSource != null) {
+            mCameraSource.release();
         }
         setResult(RESULT_CANCELED);
     }
@@ -855,10 +926,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             if (receivedId == -1) {
 
             } else {
-                buildGoogleApiClient();
-                mGoogleApiClient.connect();
-
-
                 if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) != null) {
                     Singleton.getInstance().getZombienomicon().deleteZombie(Singleton.getInstance().getZombienomicon().searchPositionByID(receivedId));
                 }
@@ -871,7 +938,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 Singleton.getInstance().getZombienomicon().addZombie(z);
             }
         }
+        zvk_state = STATE_FINAL;
         detector.release();
+        mCameraSource.release();
+
         editConfirmation.setCancelable(false);
         editConfirmation.show();
     }
@@ -916,7 +986,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         try {
                 List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
-                location = addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName();
+            location = addresses.get(0).getAddressLine(0);
                 Toast.makeText(FaceActivity.this, "Location read.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(FaceActivity.this, "ERROR: unable to get address from location.", Toast.LENGTH_LONG).show();
