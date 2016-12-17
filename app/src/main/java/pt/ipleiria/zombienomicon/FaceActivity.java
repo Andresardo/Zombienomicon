@@ -61,6 +61,8 @@ import pt.ipleiria.zombienomicon.Model.State;
 import pt.ipleiria.zombienomicon.Model.Weapon;
 import pt.ipleiria.zombienomicon.Model.Zombie;
 
+import static pt.ipleiria.zombienomicon.Model.Weapon.REVOLVER;
+
 public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = "FaceTracker";
     private static final int RC_HANDLE_GMS = 9001;
@@ -80,10 +82,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private CountDownTimer timer;
     private int flagR;
     private int flagL;
+    private int flagW = 0;
     private int blinksR = 0;
     private int blinksL = 0;
     private int transitionR = 0;
     private int transitionL = 0;
+    private int transitionW = 0;
     private BluetoothAdapter mBluetoothAdapter;
     private int receivedId = -1;
     private int zvk_state = 0;
@@ -330,6 +334,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     break;
                 case WHIP:
                     if (x < -15) {
+                        flagW=1;
+                    } else if(x>15 && flagW==1){
                         blinksR = 0;
                         blinksL = 0;
                         transitionR = 0;
@@ -342,7 +348,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     }
                     break;
                 case REVOLVER:
-                    if (x > 15) {
+                    if (x < 15) {
+                        flagW=1;
+                    } else if(x>-15 && flagW==1){
                         blinksR = 0;
                         blinksL = 0;
                         transitionR = 0;
@@ -355,7 +363,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     }
                     break;
                 case FIST:
-                    if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
+                    if (x > 15) {
                         blinksR = 0;
                         blinksL = 0;
                         transitionR = 0;
@@ -368,15 +376,20 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     }
                     break;
                 case ROLLINGPIN:
-                    if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
+                    if (x < -15 || y<-15 || z<-15) {
+                        flagW=1;
+                    } else if((x>15 || y>15 || z>15) && flagW==1){
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.rollingpin);
+                        sound.start();
+                        transitionW++;
+                    }
+                    if(transitionW==3) {
                         blinksR = 0;
                         blinksL = 0;
                         transitionR = 0;
                         transitionL = 0;
                         zvk_state = STATE_VERIFY;
                         textView_Info.setText(R.string.movement_detected);
-                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.rollingpin);
-                        sound.start();
                         timer.cancel();
                     }
                     break;
@@ -535,7 +548,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonRevolverOnClick(View view) {
-        selected_weap = Weapon.REVOLVER;
+        selected_weap = REVOLVER;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weap);
         }
