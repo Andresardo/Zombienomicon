@@ -19,8 +19,9 @@ import android.widget.Toast;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
-import java.util.Objects;
 
+import pt.ipleiria.zombienomicon.Model.Gender;
+import pt.ipleiria.zombienomicon.Model.State;
 import pt.ipleiria.zombienomicon.Model.Zombie;
 
 public class AddActivity extends AppCompatActivity {
@@ -31,7 +32,8 @@ public class AddActivity extends AppCompatActivity {
     private boolean edit = false;
     private GregorianCalendar dateDetection = new GregorianCalendar(10, 1, 1);
     private GregorianCalendar dateTermination = new GregorianCalendar(10, 1, 1);
-    private String state = "", gender = "";
+    private State state = null;
+    private Gender gender = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,27 +75,27 @@ public class AddActivity extends AppCompatActivity {
              * Caso o estado do Zombie recebido seja morto, coloca o Layout da data de Terminação visivel
              * Caso o estado do Zombie recebido seja morto-vivo, coloca o Layout da data de Terminação invisivel
              */
-            if (Objects.equals(old_zombie.getState_dead(), "Dead")) {
-                state = "Dead";
+            if (old_zombie.getState_dead() == State.DEAD) {
+                state = State.DEAD;
                 RadioButton button_state = (RadioButton) findViewById(R.id.radioButton_Dead);
                 button_state.setChecked(true);
                 TerminationDate_Layout.setVisibility(View.VISIBLE);
             } else {
-                state = "Undead";
+                state = State.UNDEAD;
                 RadioButton button_state = (RadioButton) findViewById(R.id.radioButton_Undead);
                 button_state.setChecked(true);
                 TerminationDate_Layout.setVisibility(View.INVISIBLE);
             }
-            if (Objects.equals(old_zombie.getGender(), "Male")) {
-                gender = "Male";
+            if (old_zombie.getGender() == Gender.MALE) {
+                gender = Gender.MALE;
                 RadioButton button_gender = (RadioButton) findViewById(R.id.radioButton_male);
                 button_gender.setChecked(true);
-            } else if (Objects.equals(old_zombie.getGender(), "Female")) {
-                gender = "Female";
+            } else if (old_zombie.getGender() == Gender.FEMALE) {
+                gender = Gender.FEMALE;
                 RadioButton button_gender = (RadioButton) findViewById(R.id.radioButton_female);
                 button_gender.setChecked(true);
             } else {
-                gender = "Undefined";
+                gender = Gender.UNDEFINED;
                 RadioButton button_gender = (RadioButton) findViewById(R.id.radioButton_undefined);
                 button_gender.setChecked(true);
             }
@@ -146,11 +148,11 @@ public class AddActivity extends AppCompatActivity {
                 switch (checkedId) {
                     case R.id.radioButton_Dead:
                         TerminationDate_Layout.setVisibility(View.VISIBLE);
-                        state = "Dead";
+                        state = State.DEAD;
                         break;
                     case R.id.radioButton_Undead:
                         TerminationDate_Layout.setVisibility(View.INVISIBLE);
-                        state = "Undead";
+                        state = State.UNDEAD;
                         dateTermination = new GregorianCalendar(10, 1, 1);
                         TextView terminationDate_Text = (TextView) findViewById(R.id.textView_TerminationDate);
                         terminationDate_Text.setText(R.string.no_date_yet);
@@ -170,13 +172,13 @@ public class AddActivity extends AppCompatActivity {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
                     case R.id.radioButton_male:
-                        gender = "Male";
+                        gender = Gender.MALE;
                         break;
                     case R.id.radioButton_female:
-                        gender = "Female";
+                        gender = Gender.FEMALE;
                         break;
                     case R.id.radioButton_undefined:
-                        gender = "Undefined";
+                        gender = Gender.UNDEFINED;
                         break;
                     default:
                         break;
@@ -209,13 +211,13 @@ public class AddActivity extends AppCompatActivity {
         if (!editText_AddName.getText().toString().isEmpty()
                 && !editText_AddId.getText().toString().isEmpty()
                 && !editText_AddDetectionLocation.getText().toString().isEmpty()
-                && !Objects.equals(state, "") && !Objects.equals(gender, "")
+                && state==null && gender != null
                 && !dateDetection.equals(dateVerifier)) {
             /**
              * Caso se tenham verificado as condições anteriores, e se o estado for morto ("Dead"), é
              * necessário verificar se a data de Terminação foi alterada
              */
-            if (Objects.equals(state, "Dead") && dateTermination.equals(dateVerifier)) {
+            if (state == State.DEAD && dateTermination.equals(dateVerifier)) {
                 /**
                  * Caso a data não tenha sido alterada, o utilizador é notificado de tal e continua
                  * nesta atividade
@@ -384,8 +386,8 @@ public class AddActivity extends AppCompatActivity {
         // Save the user's current game state
         savedInstanceState.putSerializable("dateDetection", dateDetection);
         savedInstanceState.putSerializable("dateTermination", dateTermination);
-        savedInstanceState.putString("gender", gender);
-        savedInstanceState.putString("state", state);
+        savedInstanceState.putSerializable("gender", gender);
+        savedInstanceState.putSerializable("state", state);
         savedInstanceState.putBoolean("edit", edit);
 
         // Always call the superclass so it can save the view hierarchy state
@@ -402,8 +404,8 @@ public class AddActivity extends AppCompatActivity {
         // Restore state members from saved instance
         dateDetection = (GregorianCalendar) savedInstanceState.getSerializable("dateDetection");
         dateTermination = (GregorianCalendar) savedInstanceState.getSerializable("dateTermination");
-        gender = savedInstanceState.getString("gender");
-        state = savedInstanceState.getString("state");
+        gender = (Gender) savedInstanceState.getSerializable("gender");
+        state = (State) savedInstanceState.getSerializable("state");
         edit = savedInstanceState.getBoolean("edit");
 
         GregorianCalendar dateVerifier = new GregorianCalendar(10, 1, 1);

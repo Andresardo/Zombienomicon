@@ -3,7 +3,6 @@ package pt.ipleiria.zombienomicon.Model;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
-import java.util.Objects;
 
 import pt.ipleiria.zombienomicon.R;
 
@@ -15,14 +14,16 @@ public class Zombie implements Serializable {
     private GregorianCalendar detection_date;
     private GregorianCalendar termination_date;
     private String name;
-    private String gender;
+    private Gender gender;
+    //private String gender;
     private String detection_location;
-    private String state_dead;
+    private State state_dead;
+    //private String state_dead;
 
     /**
      * Construtor da classe que recebe todos os valores necessários para criar um novo Zombie
      */
-    public Zombie(int id, GregorianCalendar detection_date, GregorianCalendar termination_date, String name, String gender, String detection_location, String state_dead) {
+    public Zombie(int id, GregorianCalendar detection_date, GregorianCalendar termination_date, String name, Gender gender, String detection_location, State state_dead) {
         this.id = id;
         this.detection_date = detection_date;
         this.termination_date = termination_date;
@@ -91,14 +92,14 @@ public class Zombie implements Serializable {
     /**
      * Método que devolove o género de um determinado Zombie
      */
-    public String getGender() {
+    public Gender getGender() {
         return gender;
     }
 
     /**
      * Método que permite alterar o género de um determinado Zombie
      */
-    void setGender(String gender) {
+    void setGender(Gender gender) {
         this.gender = gender;
     }
 
@@ -119,14 +120,14 @@ public class Zombie implements Serializable {
     /**
      * Método que devolove o estado de um determinado Zombie
      */
-    public String getState_dead() {
+    public State getState_dead() {
         return state_dead;
     }
 
     /**
      * Método que permite alterar o estado de um determinado Zombie
      */
-    void setState_dead(String state_dead) {
+    void setState_dead(State state_dead) {
         this.state_dead = state_dead;
     }
 
@@ -165,7 +166,7 @@ public class Zombie implements Serializable {
                 Singleton.getInstance().getContext().getResources().getString(R.string.gender) + gender + '\n' +
                 Singleton.getInstance().getContext().getResources().getString(R.string.detection_date) + dateFormattedD + '\n' +
                 Singleton.getInstance().getContext().getResources().getString(R.string.detection_location) + detection_location + '\n';
-        if (Objects.equals(state_dead, "Dead")) {
+        if (state_dead == State.DEAD) {
             res += Singleton.getInstance().getContext().getResources().getString(R.string.termination_date) + dateFormattedT + '\n';
         }
         return res;
@@ -202,7 +203,7 @@ public class Zombie implements Serializable {
                 gender + '\n' +
                 dateFormattedD + '\n' +
                 detection_location + '\n';
-        if (Objects.equals(state_dead, "Dead")) {
+        if (state_dead == State.DEAD) {
             res += dateFormattedT;
         }
         return res;

@@ -54,8 +54,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 import pt.ipleiria.zombienomicon.Model.CameraSourcePreview;
+import pt.ipleiria.zombienomicon.Model.Gender;
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
 import pt.ipleiria.zombienomicon.Model.Singleton;
+import pt.ipleiria.zombienomicon.Model.State;
 import pt.ipleiria.zombienomicon.Model.Weapon;
 import pt.ipleiria.zombienomicon.Model.Zombie;
 
@@ -96,7 +98,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private Handler mHandler;
     private BluetoothServerSocket mmServerSocket;
     private String receivedName;
-    private String receivedGender;
+    private Gender receivedGender;
     private String location;
     private boolean testing = false;
     private FaceDetector detector;
@@ -469,6 +471,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     public void buttonZVKOnClick(View view) {
         zvk_state = STATE_TEST;
         startCameraSource();
+        mPreview.setVisibility(View.VISIBLE);
         button_zvk.setVisibility(View.INVISIBLE);
         textView_Info.setText(R.string.subject_search);
         textView_Info.setVisibility(View.VISIBLE);
@@ -617,7 +620,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             String[] split = data.split(":");
                             receivedId = Integer.parseInt(split[0]);
                             receivedName = split[1];
-                            receivedGender = split[2];
+                            receivedGender = Gender.StringGender(split[2]);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -637,6 +640,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
 
             return res;
+        }
+
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate(values);
         }
 
         @Override
@@ -696,6 +705,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void weaponButtonsVisible() {
+        mPreview.setVisibility(View.INVISIBLE);
         button_rollinpin.setVisibility(View.VISIBLE);
         button_sword.setVisibility(View.VISIBLE);
         button_lightsaber.setVisibility(View.VISIBLE);
@@ -705,6 +715,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void weaponButtonsInvisible() {
+        mPreview.setVisibility(View.VISIBLE);
         button_rollinpin.setVisibility(View.INVISIBLE);
         button_sword.setVisibility(View.INVISIBLE);
         button_lightsaber.setVisibility(View.INVISIBLE);
@@ -929,7 +940,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
             if (receivedId == -1) {
                 receivedName="Unnamed Zombie";
-                receivedGender="Undefined";
+                receivedGender=Gender.UNDEFINED;
                 receivedId = Singleton.getInstance().getZombienomicon().searchAvailableID();
             } else {
                 if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) != null) {
@@ -937,10 +948,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
             }
             if (isDead) {
-                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, "Dead");
+                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, State.BooleanState(isDead));
             } else {
                 date = new GregorianCalendar(10, 1, 1);
-                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), date, receivedName, receivedGender, location, "Undead");
+                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), date, receivedName, receivedGender, location, State.BooleanState(isDead));
             }
             Singleton.getInstance().getZombienomicon().addZombie(z);
         }

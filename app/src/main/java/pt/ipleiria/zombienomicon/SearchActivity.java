@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 
+import pt.ipleiria.zombienomicon.Model.Gender;
 import pt.ipleiria.zombienomicon.Model.Singleton;
 import pt.ipleiria.zombienomicon.Model.Zombie;
 
@@ -40,7 +41,7 @@ public class SearchActivity extends AppCompatActivity {
     private int spinner_search_position;
     private int spinner_gender_position;
     private GregorianCalendar searched_date = new GregorianCalendar(10, 1, 1);
-    private String searched_gender;
+    private Gender searched_gender;
 
     /**
      * Método de callback chamado quando se cria a atividade
@@ -278,13 +279,13 @@ public class SearchActivity extends AppCompatActivity {
 
                 switch (spinner_gender_position) {
                     case 0: // Male
-                        searched_gender = "Male";
+                        searched_gender = Gender.MALE;
                         break;
                     case 1: // Female
-                        searched_gender = "Female";
+                        searched_gender = Gender.FEMALE;
                         break;
                     case 2: // Undefined
-                        searched_gender = "Undefined";
+                        searched_gender = Gender.UNDEFINED;
                         break;
                     default:
                         break;

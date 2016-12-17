@@ -3,7 +3,6 @@ package pt.ipleiria.zombienomicon.Model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
-import java.util.Objects;
 
 /**
  * Class Zombienomicon que contem uma lista de todos os zombies.
@@ -80,10 +79,10 @@ public class Zombienomicon implements Serializable {
     /**
      * Método que devolve uma lista de Zombies de um determinado estado
      */
-    public ArrayList<Zombie> searchZombieByState(String string) {
+    public ArrayList<Zombie> searchZombieByState(State state) {
         ArrayList<Zombie> list = new ArrayList<>();
         for (Zombie z : zombies) {
-            if (z.getState_dead().equals(string)) {
+            if (z.getState_dead()== state) {
                 list.add(z);
             }
         }
@@ -93,10 +92,10 @@ public class Zombienomicon implements Serializable {
     /**
      * Método que devolve uma lista de Zombies de um determinado género
      */
-    public ArrayList<Zombie> searchZombieByGender(String string) {
+    public ArrayList<Zombie> searchZombieByGender(Gender gender) {
         ArrayList<Zombie> list = new ArrayList<>();
         for (Zombie z : zombies) {
-            if (Objects.equals(z.getGender(), string)) {
+            if (z.getGender() == gender) {
                 list.add(z);
             }
         }
@@ -179,7 +178,7 @@ public class Zombienomicon implements Serializable {
         return list;
     }
     /**
-     * Método que procura e devolve a posição do zombie com um determinado ID
+     * Método que procura o primeiro ID não usado
      */
     public int searchAvailableID() {
         int i;

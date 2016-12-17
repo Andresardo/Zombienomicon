@@ -38,9 +38,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
+import pt.ipleiria.zombienomicon.Model.Gender;
 import pt.ipleiria.zombienomicon.Model.Singleton;
+import pt.ipleiria.zombienomicon.Model.State;
 import pt.ipleiria.zombienomicon.Model.Zombie;
 import pt.ipleiria.zombienomicon.Model.Zombienomicon;
 
@@ -178,17 +179,17 @@ public class MainActivity extends AppCompatActivity {
                                     zombie_list = (ListView) findViewById(R.id.listView_Zombies);
                                     zombie_list.setAdapter(simpleadapter);
                                 } else if (item_dead.isVisible()) {
-                                    zombies = zombienomicon.searchZombieByState("Dead");
+                                    zombies = zombienomicon.searchZombieByState(State.DEAD);
                                     int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
                                     Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
-                                    createSimpleAdapter(zombienomicon.searchZombieByState("Dead"));
+                                    createSimpleAdapter(zombienomicon.searchZombieByState(State.DEAD));
                                     zombie_list = (ListView) findViewById(R.id.listView_Zombies);
                                     zombie_list.setAdapter(simpleadapter);
                                 } else {
-                                    zombies = zombienomicon.searchZombieByState("Undead");
+                                    zombies = zombienomicon.searchZombieByState(State.UNDEAD);
                                     int zombie_position = zombienomicon.searchPositionByID(zombies.get(position).getId());
                                     Singleton.getInstance().getZombienomicon().deleteZombie(zombie_position);
-                                    createSimpleAdapter(zombienomicon.searchZombieByState("Undead"));
+                                    createSimpleAdapter(zombienomicon.searchZombieByState(State.UNDEAD));
                                     zombie_list = (ListView) findViewById(R.id.listView_Zombies);
                                     zombie_list.setAdapter(simpleadapter);
                                 }
@@ -272,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
                 item_all.setVisible(false);
                 item_dead.setVisible(true);
                 item_undead.setVisible(false);
-                createSimpleAdapter(zombienomicon.searchZombieByState("Dead"));
+                createSimpleAdapter(zombienomicon.searchZombieByState(State.DEAD));
                 zombie_list.setAdapter(simpleadapter);
                 break;
             /**
@@ -285,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
                 item_all.setVisible(false);
                 item_dead.setVisible(false);
                 item_undead.setVisible(true);
-                createSimpleAdapter(zombienomicon.searchZombieByState("Undead"));
+                createSimpleAdapter(zombienomicon.searchZombieByState(State.UNDEAD));
                 zombie_list.setAdapter(simpleadapter);
                 break;
             /**
@@ -405,7 +406,7 @@ public class MainActivity extends AppCompatActivity {
             HashMap<String, String> hashMap = new HashMap<>();
 
             hashMap.put("name", z.getName());
-            hashMap.put("state", z.getState_dead());
+            hashMap.put("state", State.StateString(z.getState_dead()));
             hashMap.put("id", "" + z.getId());
 
             simpleAdapterData.add(hashMap);
@@ -465,8 +466,8 @@ public class MainActivity extends AppCompatActivity {
                 int zombieId = Integer.parseInt(split[1]);
                 if (zombienomicon.searchZombieByID(zombieId) == null) {
                     String zombieName = split[2].trim();
-                    String zombieGender = split[3].trim();
-                    String zombieState = split[4].trim();
+                    Gender zombieGender = Gender.StringGender(split[3].trim());
+                    State zombieState = State.StringState(split[4].trim());
                     DateFormat df = new SimpleDateFormat("dd MM yyyy");
                     Date date = null;
                     try {
@@ -478,7 +479,7 @@ public class MainActivity extends AppCompatActivity {
                     detectionDate.setTime(date);
                     String detectionLocation = split[6].trim();
                     GregorianCalendar terminationDate = new GregorianCalendar(10, 1, 1);
-                    if (Objects.equals(zombieState, "Dead")) {
+                    if (zombieState == State.DEAD) {
                         df = new SimpleDateFormat("dd MM yyyy");
                         date = null;
                         try {
