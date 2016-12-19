@@ -113,10 +113,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private ImageButton button_lightsaber;
     private ImageButton button_whip;
     private ImageButton button_revolver;
-    private ImageButton button_rollinpin;
-    private Weapon selected_weap = Weapon.NONE;
+    private ImageButton button_rollingPin;
+    private Weapon selected_weapon = Weapon.NONE;
     private GraphicOverlay mOverlay;
     private FaceGraphic mFaceGraphic;
+    private TextView bluetooth_gif;
 
 
     //==============================================================================================
@@ -143,7 +144,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_lightsaber = (ImageButton) findViewById(R.id.Button_Lightsaber);
         button_whip = (ImageButton) findViewById(R.id.Button_Whip);
         button_revolver = (ImageButton) findViewById(R.id.Button_Revolver);
-        button_rollinpin = (ImageButton) findViewById(R.id.Button_RollingPin);
+        button_rollingPin = (ImageButton) findViewById(R.id.Button_RollingPin);
+        bluetooth_gif = (TextView) findViewById(R.id.bluetooth_gif);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -307,7 +309,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
-            switch (selected_weap) {
+            switch (selected_weapon) {
                 case SWORD:
                     if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
                         blinksR = 0;
@@ -509,6 +511,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         } else {
             zvk_state = STATE_BLUETOOTH;
             button_bluetooth.setVisibility(View.INVISIBLE);
+            bluetooth_gif.setVisibility(View.VISIBLE);
             textView_Info.setVisibility(View.VISIBLE);
             textView_Info.setText(R.string.receive_id_wait);
             timer.start();
@@ -526,9 +529,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonSwordOnClick(View view) {
-        selected_weap = Weapon.SWORD;
+        selected_weapon = Weapon.SWORD;
         if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weap);
+            mFaceGraphic.setWeapon(selected_weapon);
         }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
@@ -538,9 +541,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonLightsaberOnClick(View view) {
-        selected_weap = Weapon.LIGHTSABER;
+        selected_weapon = Weapon.LIGHTSABER;
         if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weap);
+            mFaceGraphic.setWeapon(selected_weapon);
         }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
@@ -550,9 +553,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonRevolverOnClick(View view) {
-        selected_weap = REVOLVER;
+        selected_weapon = REVOLVER;
         if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weap);
+            mFaceGraphic.setWeapon(selected_weapon);
         }
 
         zvk_state = STATE_KILL;
@@ -563,9 +566,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonFistOnClick(View view) {
-        selected_weap = Weapon.FIST;
+        selected_weapon = Weapon.FIST;
         if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weap);
+            mFaceGraphic.setWeapon(selected_weapon);
         }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
@@ -575,9 +578,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonWhipOnClick(View view) {
-        selected_weap = Weapon.WHIP;
+        selected_weapon = Weapon.WHIP;
         if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weap);
+            mFaceGraphic.setWeapon(selected_weapon);
         }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
@@ -587,9 +590,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     public void buttonRollingPinOnClick(View view) {
-        selected_weap = Weapon.ROLLINGPIN;
+        selected_weapon = Weapon.ROLLINGPIN;
         if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weap);
+            mFaceGraphic.setWeapon(selected_weapon);
         }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
@@ -600,7 +603,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     private void weaponButtonsVisible() {
         mPreview.setVisibility(View.INVISIBLE);
-        button_rollinpin.setVisibility(View.VISIBLE);
+        button_rollingPin.setVisibility(View.VISIBLE);
         button_sword.setVisibility(View.VISIBLE);
         button_lightsaber.setVisibility(View.VISIBLE);
         button_whip.setVisibility(View.VISIBLE);
@@ -610,7 +613,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     private void weaponButtonsInvisible() {
         mPreview.setVisibility(View.VISIBLE);
-        button_rollinpin.setVisibility(View.INVISIBLE);
+        button_rollingPin.setVisibility(View.INVISIBLE);
         button_sword.setVisibility(View.INVISIBLE);
         button_lightsaber.setVisibility(View.INVISIBLE);
         button_whip.setVisibility(View.INVISIBLE);
@@ -839,6 +842,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     builder.setMessage(s);
                     builder.create().show();
                     button_bluetooth.setVisibility(View.INVISIBLE);
+                    bluetooth_gif.setVisibility(View.INVISIBLE);
+                    mPreview.setVisibility(View.VISIBLE);
                     if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) == null) {
                         button_zvk.setVisibility(View.VISIBLE);
                         textView_Info.setVisibility(View.INVISIBLE);
@@ -858,6 +863,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             } else {
                 isZombie = true;
                 zvk_state = STATE_WEAPON;
+                bluetooth_gif.setVisibility(View.INVISIBLE);
                 textView_Info.setText("Choose your weapon!");
                 weaponButtonsVisible();
             }
@@ -891,7 +897,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         GraphicFaceTracker(GraphicOverlay overlay) {
             mOverlay = overlay;
             mFaceGraphic = new FaceGraphic(overlay);
-            mFaceGraphic.setWeapon(selected_weap);
+            mFaceGraphic.setWeapon(selected_weapon);
         }
 
         /**

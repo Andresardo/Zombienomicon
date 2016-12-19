@@ -43,7 +43,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true">
+        android:layout_alignParentTop="true"
+        android:visibility="invisible">
 
         <pt.ipleiria.zombienomicon.Model.GraphicOverlay
             android:id="@+id/faceOverlay"
@@ -79,8 +80,9 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:visibility="invisible"
-        android:onClick="buttonSwordOnClick"/>
-    <!--android:background="@drawable/Sword"-->
+        android:onClick="buttonSwordOnClick"
+        android:background="@drawable/sword"
+        android:contentDescription="" />
 
 
     <ImageButton
@@ -91,8 +93,8 @@
         android:layout_marginStart="12dp"
         android:layout_toEndOf="@+id/Button_Sword"
         android:visibility="invisible"
-        android:onClick="buttonLightsaberOnClick"/>
-    <!--android:background="@drawable/LightSaber"-->
+        android:onClick="buttonLightsaberOnClick"
+        android:background="@drawable/light_saber"/>
 
 
     <ImageButton
@@ -102,9 +104,8 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/Button_Sword"
         android:visibility="invisible"
-        android:onClick="buttonRevolverOnClick"/>
-
-    <!--android:background="@drawable/Revolver"-->
+        android:onClick="buttonRevolverOnClick"
+        android:background="@drawable/revolver"/>
 
 
     <ImageButton
@@ -114,8 +115,8 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/Button_Revolver"
         android:visibility="invisible"
-        android:onClick="buttonFistOnClick"/>
-    <!--android:background="@drawable/Fist"-->
+        android:onClick="buttonFistOnClick"
+        android:background="@drawable/fist"/>
 
 
     <ImageButton
@@ -125,8 +126,8 @@
         android:layout_alignStart="@+id/Button_Lightsaber"
         android:layout_below="@+id/Button_Lightsaber"
         android:visibility="invisible"
-        android:onClick="buttonWhipOnClick"/>
-    <!--android:background="@drawable/Whip"-->
+        android:onClick="buttonWhipOnClick"
+        android:background="@drawable/whip"/>
 
 
     <ImageButton
@@ -136,15 +137,15 @@
         android:visibility="invisible"
         android:onClick="buttonRollingPinOnClick"
         android:layout_below="@+id/Button_Whip"
-        android:layout_alignStart="@+id/Button_Whip" />
+        android:layout_alignStart="@+id/Button_Whip"
+        android:background="@drawable/rolling_pin"/>
 
-   <pl.droidsonroids.gif.GifTextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-       android:layout_alignParentBottom="true"
-       android:src="@drawable/bluetooth"
-    />
+    <pl.droidsonroids.gif.GifTextView
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+        android:drawableTop="@drawable/bluetooth"
+        android:drawableStart="@drawable/bluetooth"
+        android:id="@+id/bluetooth_gif"
+        android:visibility="visible" />
 
 </RelativeLayout>
