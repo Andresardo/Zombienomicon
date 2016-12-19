@@ -1,9 +1,5 @@
 package pt.ipleiria.zombienomicon.Model;
 
-/**
- * Created by Mário Vala on 17-12-2016.
- */
-
 public enum State {
     DEAD,UNDEAD;
 
@@ -24,8 +20,8 @@ public enum State {
         return string;
     }
 
-    public static State BooleanState(boolean isdead){
-        if(isdead){
+    public static State BooleanState(boolean isDead){
+        if(isDead){
             return State.DEAD;
         } else {
             return State.UNDEAD;
