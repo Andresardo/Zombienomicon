@@ -138,10 +138,13 @@
         android:layout_below="@+id/Button_Whip"
         android:layout_alignStart="@+id/Button_Whip" />
 
-    <!--<pl.droidsonroids.gif.GifTextView
+   <pl.droidsonroids.gif.GifTextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" /> -->
+        android:layout_alignParentStart="true"
+       android:layout_alignParentBottom="true"
+       android:src="@drawable/bluetooth"
+    />
 
 </RelativeLayout>
