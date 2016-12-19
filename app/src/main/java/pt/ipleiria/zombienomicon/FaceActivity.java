@@ -277,6 +277,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     lastMethod();
                 } else if (Objects.equals(feedback, "Start test!")) {
                     button_start.setVisibility(View.VISIBLE);
+                } else if (Objects.equals(feedback, "Subject lost!")) {
+                    button_start.setVisibility(View.INVISIBLE);
                 }
             }
         };
