@@ -757,7 +757,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      * associated face overlay.
      */
     private class GraphicFaceTracker extends Tracker<Face> {
-
+        private double blinkLimit = 0.5;
 
         GraphicFaceTracker(GraphicOverlay overlay) {
             mOverlay = overlay;
@@ -774,12 +774,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 mFaceGraphic.setZombie(isZombie);
                 mFaceGraphic.setId(faceId);
 
-                if (item.getIsRightEyeOpenProbability() > 0.7) {
+                if (item.getIsRightEyeOpenProbability() > blinkLimit) {
                     flagR = 0;
                 } else {
                     flagR = 1;
                 }
-                if (item.getIsRightEyeOpenProbability() > 0.7) {
+                if (item.getIsRightEyeOpenProbability() > blinkLimit) {
                     flagL = 0;
                 } else {
                     flagL = 1;
@@ -801,19 +801,19 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 mOverlay.add(mFaceGraphic);
                 mFaceGraphic.updateFace(face);
                 if (testing) {
-                    if (flagR == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
+                    if (flagR == 0 && face.getIsRightEyeOpenProbability() < blinkLimit) {
                         flagR = 1;
                         transitionR++;
                     } else {
-                        if (flagR == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                        if (flagR == 1 && face.getIsRightEyeOpenProbability() > blinkLimit) {
                             flagR = 0;
                             transitionR++;
                         } else {
-                            if (flagL == 0 && face.getIsRightEyeOpenProbability() < 0.7) {
+                            if (flagL == 0 && face.getIsRightEyeOpenProbability() < blinkLimit) {
                                 flagL = 1;
                                 transitionL++;
                             } else {
-                                if (flagL == 1 && face.getIsRightEyeOpenProbability() > 0.7) {
+                                if (flagL == 1 && face.getIsRightEyeOpenProbability() > blinkLimit) {
                                     flagL = 0;
                                     transitionL++;
                                 }
