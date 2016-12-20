@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -53,7 +54,7 @@ import static pt.ipleiria.zombienomicon.AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OL
 public class MainActivity extends AppCompatActivity {
     public static final String PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE = "pt.ipleiria.zombienomicon.edit.zombie";
     public static final int REQUEST_CODE_SEARCH = 3;
-    public static final String URL = "http://m.uploadedit.com/ba3s/1481125680307.txt";
+    public static String URL = "http://m.uploadedit.com/ba3s/1481125680307.txt";
     private static final int REQUEST_CODE_ADD = 1;
     private static final int REQUEST_CODE_EDIT = 2;
     private Zombienomicon zombienomicon;
@@ -313,6 +314,29 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(MainActivity.this, "Error: no network connection.", Toast.LENGTH_SHORT).show();
                 }
+                break;
+            case (R.id.configure_url):
+                AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+                alert.setTitle("Title");
+                alert.setMessage("Message");
+
+                // Set an EditText view to get user input
+                final EditText input = new EditText(this);
+                alert.setView(input);
+
+                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        URL = input.getText().toString();
+                    }
+                });
+
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+
+                alert.show();
                 break;
         }
         return super.onOptionsItemSelected(item);

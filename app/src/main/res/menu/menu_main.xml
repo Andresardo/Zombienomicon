@@ -34,4 +34,9 @@
         android:id="@+id/read_network"
         android:title="@string/read_from_network"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/configure_url"
+        android:title="Configure URL"
+        app:showAsAction="never" />
 </menu>
