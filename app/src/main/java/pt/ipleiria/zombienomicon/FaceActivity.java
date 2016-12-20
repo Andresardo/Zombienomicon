@@ -899,6 +899,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             mOverlay = overlay;
             mFaceGraphic = new FaceGraphic(overlay);
             mFaceGraphic.setWeapon(selected_weapon);
+            mFaceGraphic.drawWeapon();
         }
 
         /**
