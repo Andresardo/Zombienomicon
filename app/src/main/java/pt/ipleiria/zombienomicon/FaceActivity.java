@@ -532,6 +532,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         selected_weapon = Weapon.SWORD;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weapon);
+            mFaceGraphic.drawWeapon();
         }
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);

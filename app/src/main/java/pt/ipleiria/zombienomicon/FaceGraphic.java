@@ -110,9 +110,6 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         canvas.drawText("right eye: " + String.format("%.2f", face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
         canvas.drawText("left eye: " + String.format("%.2f", face.getIsLeftEyeOpenProbability()), x - ID_X_OFFSET * 2, y - ID_Y_OFFSET * 2, mIdPaint);
 
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.sword);
-        canvas.drawBitmap(bmp, rectangle ,rectangle , null);
-
         // Draws a bounding box around the face.
         float xOffset = scaleX(face.getWidth() / 2.0f);
         float yOffset = scaleY(face.getHeight() / 2.0f);
@@ -122,6 +119,14 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float bottom = y + yOffset;
         canvas.drawRect(left, top, right, bottom, mBoxPaint);
     }
+
+    public void drawWeapon(){
+        Canvas canvas = new Canvas();
+
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.sword);
+        canvas.drawBitmap(bmp, rectangle ,rectangle , null);
+    }
+
 
     public void setZombie(boolean isZombie) {
         this.isZombie = isZombie;
