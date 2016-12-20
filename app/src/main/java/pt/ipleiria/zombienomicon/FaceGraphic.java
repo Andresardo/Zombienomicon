@@ -15,9 +15,13 @@ package pt.ipleiria.zombienomicon;
  * limitations under the License.
  */
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 
 import com.google.android.gms.vision.face.Face;
 
@@ -43,6 +47,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private int mFaceId;
     private boolean isZombie;
     private Weapon selected_weap;
+    private Bitmap bmp;
+    private Resources resources;
+    private Rect rectangle;
 
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
@@ -55,6 +62,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint = new Paint();
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
+
+        rectangle = new Rect(overlay.getRight()-50, overlay.getBottom()-50, overlay.getRight(),overlay.getBottom());
+
     }
 
     void setId(int id) {
@@ -85,7 +95,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float x = translateX(face.getPosition().x + face.getWidth() / 2);
         float y = translateY(face.getPosition().y + face.getHeight() / 2);
         canvas.drawCircle(x, y, FACE_POSITION_RADIUS, mFacePositionPaint);
-        if(isZombie){
+        if (isZombie) {
             mIdPaint.setColor(Color.RED);
             mBoxPaint.setColor(Color.RED);
             mFacePositionPaint.setColor(Color.RED);
@@ -99,6 +109,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         canvas.drawText("happiness: " + String.format("%.2f", face.getIsSmilingProbability()), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
         canvas.drawText("right eye: " + String.format("%.2f", face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
         canvas.drawText("left eye: " + String.format("%.2f", face.getIsLeftEyeOpenProbability()), x - ID_X_OFFSET * 2, y - ID_Y_OFFSET * 2, mIdPaint);
+
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.sword);
+        canvas.drawBitmap(bmp, rectangle ,rectangle , null);
 
         // Draws a bounding box around the face.
         float xOffset = scaleX(face.getWidth() / 2.0f);
@@ -115,5 +128,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     }
     public void setWeapon(Weapon weap) {
         this.selected_weap = weap;
+    }
+
+    public Resources getResources() {
+        return resources;
     }
 }
