@@ -318,10 +318,8 @@ public class MainActivity extends AppCompatActivity {
             case (R.id.configure_url):
                 AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-                alert.setTitle("Title");
-                alert.setMessage("Message");
-
-                // Set an EditText view to get user input
+                alert.setTitle("Configure URL");
+                alert.setMessage("Write URL link in the box below:");
                 final EditText input = new EditText(this);
                 alert.setView(input);
 
