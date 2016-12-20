@@ -32,6 +32,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -118,6 +119,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private GraphicOverlay mOverlay;
     private FaceGraphic mFaceGraphic;
     private TextView bluetooth_gif;
+    private ImageView weaponImage;
 
 
     //==============================================================================================
@@ -146,6 +148,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_revolver = (ImageButton) findViewById(R.id.Button_Revolver);
         button_rollingPin = (ImageButton) findViewById(R.id.Button_RollingPin);
         bluetooth_gif = (TextView) findViewById(R.id.bluetooth_gif);
+        weaponImage = (ImageView) findViewById(R.id.weaponImage);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -532,8 +535,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         selected_weapon = Weapon.SWORD;
         if (mFaceGraphic != null) {
             mFaceGraphic.setWeapon(selected_weapon);
-            mFaceGraphic.drawWeapon();
         }
+        weaponImage.setVisibility(View.VISIBLE);
+        weaponImage.setImageResource(R.drawable.sword);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -899,7 +903,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             mOverlay = overlay;
             mFaceGraphic = new FaceGraphic(overlay);
             mFaceGraphic.setWeapon(selected_weapon);
-            mFaceGraphic.drawWeapon();
         }
 
         /**

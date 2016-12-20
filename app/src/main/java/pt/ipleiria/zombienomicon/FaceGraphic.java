@@ -17,7 +17,6 @@ package pt.ipleiria.zombienomicon;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -62,9 +61,6 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint = new Paint();
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
-
-        rectangle = new Rect(overlay.getRight()-50, overlay.getBottom()-50, overlay.getRight(),overlay.getBottom());
-
     }
 
     void setId(int id) {
@@ -120,12 +116,6 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         canvas.drawRect(left, top, right, bottom, mBoxPaint);
     }
 
-    public void drawWeapon(){
-        Canvas canvas = new Canvas();
-
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.sword);
-        canvas.drawBitmap(bmp, rectangle ,rectangle , null);
-    }
 
 
     public void setZombie(boolean isZombie) {
