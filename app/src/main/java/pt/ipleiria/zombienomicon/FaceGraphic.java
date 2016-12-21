@@ -15,17 +15,16 @@ package pt.ipleiria.zombienomicon;
  * limitations under the License.
  */
 
-import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 
 import com.google.android.gms.vision.face.Face;
 
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
 import pt.ipleiria.zombienomicon.Model.Weapon;
+
+import static com.google.android.gms.vision.face.Landmark.LEFT_EYE;
 
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
@@ -46,9 +45,6 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private int mFaceId;
     private boolean isZombie;
     private Weapon selected_weap;
-    private Bitmap bmp;
-    private Resources resources;
-    private Rect rectangle;
 
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
@@ -106,6 +102,11 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         canvas.drawText("right eye: " + String.format("%.2f", face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
         canvas.drawText("left eye: " + String.format("%.2f", face.getIsLeftEyeOpenProbability()), x - ID_X_OFFSET * 2, y - ID_Y_OFFSET * 2, mIdPaint);
 
+        float xRE = scaleX(face.getLandmarks().get(LEFT_EYE).getPosition().x);
+        float yRE = scaleY(face.getLandmarks().get(LEFT_EYE).getPosition().y);
+
+        canvas.drawCircle(xRE, yRE, 5, mFacePositionPaint);
+
         // Draws a bounding box around the face.
         float xOffset = scaleX(face.getWidth() / 2.0f);
         float yOffset = scaleY(face.getHeight() / 2.0f);
@@ -116,16 +117,12 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         canvas.drawRect(left, top, right, bottom, mBoxPaint);
     }
 
-
-
     public void setZombie(boolean isZombie) {
         this.isZombie = isZombie;
     }
+
     public void setWeapon(Weapon weap) {
         this.selected_weap = weap;
     }
 
-    public Resources getResources() {
-        return resources;
-    }
 }
