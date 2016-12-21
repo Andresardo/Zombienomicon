@@ -303,6 +303,9 @@ public class MainActivity extends AppCompatActivity {
                 createSimpleAdapter(zombienomicon.getZombies());
                 zombie_list.setAdapter(simpleadapter);
                 break;
+            /**
+             * Quando se pressiona a opção read from network, é lido o ficheiro com o URL definido
+             */
             case (R.id.read_network):
                 ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -315,6 +318,10 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Error: no network connection.", Toast.LENGTH_SHORT).show();
                 }
                 break;
+            /**
+             * Quando se pressiona a opção configure URL, aparece um AlertDialog com uma EditText
+             * que permite ao utilizador introduzir o seu próprio URL, de forma a ser lida a sua informação
+             */
             case (R.id.configure_url):
                 AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
@@ -480,13 +487,28 @@ public class MainActivity extends AppCompatActivity {
         return sb.toString();
     }
 
+    /**
+     * Método que lê o ficheiro de texto no URL e adiciona os Zombies à lista
+     */
     private void parseZombie(String text) {
         String[] lines = text.split("\n");
         for (String line : lines) {
+            /**
+             * Para cada linha, se não for nula, se não começar por "#" e se começar por "*"
+             */
             if (line != null && !line.startsWith("#") && line.startsWith("*") && !line.trim().isEmpty()) {
+                /**
+                 * É feito um split por ":"
+                 */
                 String[] split = line.split(":");
                 int zombieId = Integer.parseInt(split[1]);
+                /**
+                 * Verifica se já existe um Zombie com o Id lido
+                 */
                 if (zombienomicon.searchZombieByID(zombieId) == null) {
+                    /**
+                     * Caso não exista adiciona-o à lista com os campos lidos no ficheiro
+                     */
                     String zombieName = split[2].trim();
                     Gender zombieGender = Gender.StringGender(split[3].trim());
                     State zombieState = State.StringState(split[4].trim());
@@ -519,6 +541,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * AsyncTask que permite ir buscar o conteúdo do ficheiro
+     */
     private class DownloadContactsTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
@@ -544,6 +569,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        /**
+         * Após ir buscar o ficheiro e colocar os Zombies na lista, atualiza a listView
+         */
         @Override
         protected void onPostExecute(String result) {
             if (!result.startsWith("ERROR")) {

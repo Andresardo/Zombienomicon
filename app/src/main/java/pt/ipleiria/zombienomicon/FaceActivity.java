@@ -129,7 +129,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     //==============================================================================================
 
     /**
-     * Initializes the UI and initiates the creation of a face detector.
+     * Inicializa as variaveis das Views, dos sensores, do timere, da camara e da localização
      */
     @Override
     public void onCreate(Bundle icicle) {
@@ -158,32 +158,63 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         buildGoogleApiClient();
         mGoogleApiClient.connect();
 
+        /**
+         * Timer de 30 segundos
+         */
         timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
                 textView_Timer.setText(getString(R.string.time_left) + millisUntilFinished / 1000);
             }
 
+            /**
+             * Método de callback chamado quando o timer acaba a contagem
+             */
             public void onFinish() {
                 switch (zvk_state) {
+                    /**
+                     * Caso o timer chegue ao fim da contagem quando o processo se encontra no estado
+                     * STATE_TEST, verifica-se se os olhos foram piscados 5 ou mais vezes
+                     */
                     case STATE_TEST:
                         if (blinksL > 4 || blinksR > 4) {
+                            /**
+                             * Caso isto aconteça, significa que o sujeito de teste é um Zombie e o estado
+                             * passa para STATE_WEAPON, onde o Zombie Runner pode escolher a arma
+                             */
                             isZombie = true;
                             zvk_state = STATE_WEAPON;
                             textView_Info.setText("Choose your weapon!");
                             weaponButtonsVisible();
                         } else {
+                            /**
+                             * Caso não seja um Zombie, essa informação aparece num AlertDialog e termina
+                             * a atividade (recorrendo ao lastMethod())
+                             */
                             isZombie = false;
                             textView_Info.setText(R.string.subject_human);
                             lastMethod();
                         }
+                        /**
+                         * Independentemente de ser um Zombie ou não, a variavel testing passa a ser false
+                         */
                         testing = false;
                         break;
                     case STATE_KILL:
+                        /**
+                         * Caso o timer chegue ao fim da contagem quando o processo se encontra no estado
+                         * STATE_KILL, significa que não foi detetado um ataque ao Zombie: a atividade
+                         * é terminada, ficando o estado do Zombie Undead
+                         */
                         isDead = false;
                         textView_Info.setText(R.string.you_died);
                         lastMethod();
                         break;
                     case STATE_VERIFY:
+                        /**
+                         * Caso o timer chegue ao fim da contagem quando o processo se encontra no estado
+                         * STATE_VERIFY, significa que o sujeito de teste não piscou os olhos, o que
+                         * implica que este está morto.
+                         */
                         isDead = true;
                         textView_Info.setText(R.string.zombie_died);
                         lastMethod();
@@ -193,8 +224,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
             }
         };
-        // Check for the camera permission before accessing the camera.  If the
-        // permission is not granted yet, request permission.
+        /**
+         * Verifica se tem permissão da câmara antes de lhe aceder
+         */
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
             createCameraSource();
@@ -204,9 +236,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     /**
-     * Handles the requesting of the camera permission.  This includes
-     * showing a "Snackbar" message of why the permission is needed then
-     * sending the request.
+     * Este método lida com o pedido de permissão da câmara.
      */
     private void requestCameraPermission() {
         Log.w(TAG, "Camera permission is not granted. Requesting permission");
@@ -235,14 +265,16 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 .show();
     }
 
+
     /**
-     * Creates and starts the camera.  Note that this uses a higher resolution in comparison
-     * to other detection examples to enable the barcode detector to detect small barcodes
-     * at long distances.
+     * Cria e inicia a camâra.
      */
     private void createCameraSource() {
 
         Context context = getApplicationContext();
+        /**
+         * Cria um detetor para as caras. Este detetor apenas vê a cara mais proeminente
+         */
         detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .setProminentFaceOnly(true)
@@ -253,14 +285,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         .build());
 
         if (!detector.isOperational()) {
-            // Note: The first time that an app using face API is installed on a device, GMS will
-            // download a native library to the device in order to do detection.  Usually this
-            // completes before the app is run for the first time.  But if that download has not yet
-            // completed, then the above call will not detect any faces.
-            //
-            // isOperational() can be used to check if the required native library is currently
-            // available.  The detector will automatically become operational once the library
-            // download completes on device.
             Log.w(TAG, "Face detector dependencies are not yet available.");
         }
 
@@ -270,16 +294,28 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 .setRequestedFps(30.0f)
                 .build();
 
+        /**
+         * Caso se pretenda aceder à UI quando acontece algo nos métodos de callback da câmara
+         * (onNewItem, onUpdate, onMissing ou onDone), é necessário estas comunicarem com a thread
+         * da UI através de mensagens. Aqui cria-se o Handler para essas mensagens.
+         */
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
 
                 String feedback = msg.getData().getString(FEEDBACK);
-
+                /**
+                 * Escreve na textView o que recebe dos métodos acima referidos
+                 */
                 if (feedback != null) {
                     textView_Info.setText(feedback);
                 }
+                /**
+                 * Caso se receba "Start test!" , o botão para iniciar o teste fica visivel;
+                 * Caso se receba "Subject lost!", o botão para iniciar o teste fica invisivel;
+                 * Caso contrário é chamado o lastMethod para terminar a atividade.
+                 */
                 if (!Objects.equals(feedback, "Start test!") && !Objects.equals(feedback, "Subject lost!")) {
                     lastMethod();
                 } else if (Objects.equals(feedback, "Start test!")) {
@@ -308,21 +344,25 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    /**
+     * Mátodo de callback chamado quando ha alterações nos sensores
+     */
     @Override
     public void onSensorChanged(SensorEvent event) {
+        /**
+         * Os sensores apenas são relevante quando o processo se encontra no estado STATE_KILL
+         */
         if (zvk_state == STATE_KILL) {
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
             switch (selected_weapon) {
+                /**
+                 * Dependendo da arma escolhida, os movimentos para matar o Zombie são diferentes
+                 */
                 case SWORD:
                     if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
-                        blinksR = 0;
-                        blinksL = 0;
-                        transitionR = 0;
-                        transitionL = 0;
-                        zvk_state = STATE_VERIFY;
-                        textView_Info.setText(R.string.movement_detected);
+                        movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.sword);
                         sound.start();
                         timer.cancel();
@@ -330,12 +370,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     break;
                 case LIGHTSABER:
                     if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
-                        blinksR = 0;
-                        blinksL = 0;
-                        transitionR = 0;
-                        transitionL = 0;
-                        zvk_state = STATE_VERIFY;
-                        textView_Info.setText(R.string.movement_detected);
+                        movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.sword);
                         sound.start();
                         timer.cancel();
@@ -345,12 +380,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     if (x < -15) {
                         flagW = 1;
                     } else if (x > 15 && flagW == 1) {
-                        blinksR = 0;
-                        blinksL = 0;
-                        transitionR = 0;
-                        transitionL = 0;
-                        zvk_state = STATE_VERIFY;
-                        textView_Info.setText(R.string.movement_detected);
+                        movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.whip);
                         sound.start();
                         timer.cancel();
@@ -360,12 +390,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     if (x < 15) {
                         flagW = 1;
                     } else if (x > -15 && flagW == 1) {
-                        blinksR = 0;
-                        blinksL = 0;
-                        transitionR = 0;
-                        transitionL = 0;
-                        zvk_state = STATE_VERIFY;
-                        textView_Info.setText(R.string.movement_detected);
+                        movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.revolver);
                         sound.start();
                         timer.cancel();
@@ -373,17 +398,15 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     break;
                 case FIST:
                     if (x > 15) {
-                        blinksR = 0;
-                        blinksL = 0;
-                        transitionR = 0;
-                        transitionL = 0;
-                        zvk_state = STATE_VERIFY;
-                        textView_Info.setText(R.string.movement_detected);
+                        movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.fist);
                         sound.start();
                         timer.cancel();
                     }
                     break;
+                /**
+                 * Para matar o Zombie com o rolo da massa é preciso "acertar-lhe" 3 vezes
+                 */
                 case ROLLINGPIN:
                     if (x < -15 || y < -15 || z < -15) {
                         flagW = 1;
@@ -393,12 +416,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         transitionW++;
                     }
                     if (transitionW == 3) {
-                        blinksR = 0;
-                        blinksL = 0;
-                        transitionR = 0;
-                        transitionL = 0;
-                        zvk_state = STATE_VERIFY;
-                        textView_Info.setText(R.string.movement_detected);
+                        movementDetection();
                         timer.cancel();
                     }
                     break;
@@ -410,26 +428,27 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    /**
+     * Mátodo que é chamado quando se verificou movimento das arma
+     */
+    private void movementDetection() {
+        blinksR = 0;
+        blinksL = 0;
+        transitionR = 0;
+        transitionL = 0;
+        zvk_state = STATE_VERIFY;
+        textView_Info.setText(R.string.movement_detected);
+        timer.cancel();
+    }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         Toast.makeText(this, sensor.getName() + "accuracy changed to " + accuracy, Toast.LENGTH_SHORT).show();
     }
 
+
     /**
-     * Callback for the result from requesting permissions. This method
-     * is invoked for every call on {@link #requestPermissions(String[], int)}.
-     * <p>
-     * <strong>Note:</strong> It is possible that the permissions request interaction
-     * with the user is interrupted. In this case you will receive empty permissions
-     * and results arrays which should be treated as a cancellation.
-     * </p>
-     *
-     * @param requestCode  The request code passed in {@link #requestPermissions(String[], int)}.
-     * @param permissions  The requested permissions. Never null.
-     * @param grantResults The grant results for the corresponding permissions
-     *                     which is either {@link PackageManager#PERMISSION_GRANTED}
-     *                     or {@link PackageManager#PERMISSION_DENIED}. Never null.
-     * @see #requestPermissions(String[], int)
+     * Mátodo de callback chamado quando se pretende pedir permissões.
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -465,10 +484,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     // Camera Source Preview
     //==============================================================================================
 
+
     /**
-     * Starts or restarts the camera source, if it exists.  If the camera source doesn't exist yet
-     * (e.g., because onResume was called before the camera source was created), this will be called
-     * again when the camera source is created.
+     * Começa ou reinicia a camera source, se exitir.
      */
     private void startCameraSource() {
 
@@ -490,6 +508,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    /**
+     * Método chamado quando se clica no botão para iniciar o teste. O estado é alterado para STATE_TEST
+     * A câmara é iniciada
+     */
     public void buttonZVKOnClick(View view) {
         zvk_state = STATE_TEST;
         startCameraSource();
@@ -500,6 +522,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     }
 
+    /**
+     * Método chamado quando se clica no botão para esperar pelos dados por Bluetooth.
+     * Caso o Bluetooth não estiver ativado, é pedido para o ser.
+     * O estado passa para o STATE_BLUETOOTH
+     * É criada uma AssyncTask que espera pelos dados.
+     */
     public void buttonBluetoothOnClick(View view) {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -525,6 +553,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    /**
+    * Método chamado quando se clica no botão para iniciar o teste
+     * Este botão apenas está visivel quando o processo se encontra no estado STATE_TEST ou STATE_VERIFY
+     * e quando o detetor reconhece uma cara
+     */
     public void buttonStartOnClick(View view) {
         timer.start();
         button_start.setVisibility(View.INVISIBLE);
@@ -533,6 +566,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         startCameraSource();
     }
 
+    /**
+     * Método chamado quando se clica no botão da espada
+     * A arma escolhida passa a ser a espada e o estado passa a ser STATE_KILL
+     */
     public void buttonSwordOnClick(View view) {
         selected_weapon = Weapon.SWORD;
         if (mFaceGraphic != null) {
@@ -547,6 +584,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         weaponButtonsInvisible();
     }
 
+    /**
+     * Método chamado quando se clica no botão do lightsaber
+     * A arma escolhida passa a ser o lightsaber e o estado passa a ser STATE_KILL
+     */
     public void buttonLightsaberOnClick(View view) {
         selected_weapon = Weapon.LIGHTSABER;
         if (mFaceGraphic != null) {
@@ -559,6 +600,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         weaponButtonsInvisible();
     }
 
+    /**
+     * Método chamado quando se clica no botão do revolver
+     * A arma escolhida passa a ser o revolver e o estado passa a ser STATE_KILL
+     */
     public void buttonRevolverOnClick(View view) {
         selected_weapon = REVOLVER;
         if (mFaceGraphic != null) {
@@ -572,6 +617,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         weaponButtonsInvisible();
     }
 
+    /**
+     * Método chamado quando se clica no botão do punho
+     * A arma escolhida passa a ser o punho e o estado passa a ser STATE_KILL
+     */
     public void buttonFistOnClick(View view) {
         selected_weapon = Weapon.FIST;
         if (mFaceGraphic != null) {
@@ -584,6 +633,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         weaponButtonsInvisible();
     }
 
+    /**
+     * Método chamado quando se clica no botão do chicote
+     * A arma escolhida passa a ser o chicote e o estado passa a ser STATE_KILL
+     */
     public void buttonWhipOnClick(View view) {
         selected_weapon = Weapon.WHIP;
         if (mFaceGraphic != null) {
@@ -596,6 +649,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         weaponButtonsInvisible();
     }
 
+    /**
+     * Método chamado quando se clica no botão do rolo da massa
+     * A arma escolhida passa a ser o rolo da massa e o estado passa a ser STATE_KILL
+     */
     public void buttonRollingPinOnClick(View view) {
         selected_weapon = Weapon.ROLLINGPIN;
         if (mFaceGraphic != null) {
@@ -608,6 +665,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         weaponButtonsInvisible();
     }
 
+    /**
+     * Método chamado quando se pretende que os botões das armas fiquem visiveis
+     */
     private void weaponButtonsVisible() {
         mPreview.setVisibility(View.INVISIBLE);
         button_rollingPin.setVisibility(View.VISIBLE);
@@ -618,6 +678,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_revolver.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Método chamado quando se pretende que os botões das armas fiquem invisiveis
+     */
     private void weaponButtonsInvisible() {
         mPreview.setVisibility(View.VISIBLE);
         button_rollingPin.setVisibility(View.INVISIBLE);
@@ -628,6 +691,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_revolver.setVisibility(View.INVISIBLE);
     }
 
+    /**
+     * Método chamado quando se pressiona o botão de retrocesso
+     * Caso o socket esteja aberto, este é fechado
+     * Caso a camara estiver iniciada é libertada
+     */
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -650,11 +718,17 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     // Graphic Face Tracker
     //==============================================================================================
 
+    /**
+     * Mátodo chamado quando se pretende terminar a atividade
+     */
     public void lastMethod() {
         Zombie z;
         GregorianCalendar date;
         android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
         if (!isZombie) {
+            /**
+             * Caso o sujeito não seja Zombie, apresenta um AlertDialog com essa informação
+             */
             editConfirmation.setTitle("The living shall rise!");
             editConfirmation.setMessage("The subject is human!");
             editConfirmation.setPositiveButton(
@@ -665,7 +739,13 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         }
                     });
         } else {
+            /**
+             * Caso contrário é verificado se o Zombie está morto ou não
+             */
             if (isDead) {
+                /**
+                 * Caso seja um Zombie é apresentado um AlertDialog com a informação relativa ao seu estado
+                 */
                 textView_Info.setText(R.string.zombie_died);
                 editConfirmation.setTitle("The living shall rise!");
                 editConfirmation.setMessage("The Zombie died!");
@@ -687,23 +767,43 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             }
                         });
             }
+            /**
+             * Caso não tenha sido recebido informação por bluetooth, o nome do Zombie passa a ser
+             * "Unnamed Zombie"; o género passa a ser "Undefined" e o Id é o primeiro Id não utilizado
+             */
             if (receivedId == -1) {
                 receivedName = "Unnamed Zombie";
                 receivedGender = Gender.UNDEFINED;
                 receivedId = Singleton.getInstance().getZombienomicon().searchAvailableID();
             } else {
+                /**
+                 * Caso contrário, verifica se o Zombie com o Id recebido já existe
+                 */
                 if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) != null) {
+                    /**
+                     * Caso exista, este Zombie é removido da lista
+                     */
                     Singleton.getInstance().getZombienomicon().deleteZombie(Singleton.getInstance().getZombienomicon().searchPositionByID(receivedId));
                 }
             }
+            /**
+             * É criado um Zombie com os parâmetros corretos dependendo do estado
+             */
             if (isDead) {
                 z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, State.BooleanState(isDead));
             } else {
                 date = new GregorianCalendar(10, 1, 1);
                 z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), date, receivedName, receivedGender, location, State.BooleanState(isDead));
             }
+            /**
+             * O Zombie é adicionado à lista
+             */
             Singleton.getInstance().getZombienomicon().addZombie(z);
         }
+        /**
+         * O estado passa a ser STATE_FINAL
+         * É feito o release do detetor e da camara
+         */
         zvk_state = STATE_FINAL;
         detector.release();
         mCameraSource.release();
@@ -712,6 +812,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         editConfirmation.show();
     }
 
+    /**
+     * É criado um novo ApiClient para aceder à localização
+     */
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -719,10 +822,16 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 .addApi(LocationServices.API).build();
     }
 
+    /**
+     * Método chamado quando existe conexão
+     */
     @Override
     public void onConnected(Bundle bundle) {
         Toast.makeText(FaceActivity.this, "Google API Client connected.", Toast.LENGTH_SHORT).show();
 
+        /**
+         * A última localização é pedida a cada segundo
+         */
         LocationRequest mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_LOW_POWER)
                 .setInterval(1000)
@@ -733,6 +842,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+        /**
+         * Se a última localização for diferente de null, é chamado o método getLocation()
+         */
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
             getLocation();
@@ -742,17 +854,26 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     }
 
+    /**
+     * Método chamado quando a conexão é suspendida
+     */
     @Override
     public void onConnectionSuspended(int i) {
         Toast.makeText(FaceActivity.this, "Google API Client connection suspended.", Toast.LENGTH_SHORT).show();
         mGoogleApiClient.connect();
     }
 
+    /**
+     * Método chamado quando se a conexão falhar
+     */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Toast.makeText(FaceActivity.this, "Google API Client connection failed.", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Mátodo que atualiza a variavel location para um String com o endereço e o país
+     */
     private void getLocation() {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
@@ -769,14 +890,23 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    /**
+     * Metodo chamado quando existe uma atualização da localização
+     */
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation=location;
     }
 
+    /**
+     * Inner class que representa uma AsyncTask para quando se está à espera de receber dados por bluetooth
+     */
     private class ServerTask extends AsyncTask<String, Void, String> {
         private InputStream inputStream;
 
+        /**
+         * É criado um novo socket
+         */
         ServerTask() {
             try {
                 mmServerSocket = mBluetoothAdapter.listenUsingRfcommWithServiceRecord("My Bluetooth App", UUID.fromString(MY_UUID));
@@ -785,7 +915,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             }
         }
 
-
+        /**
+         * Mátodo que faz algo em background
+         */
         @Override
         protected String doInBackground(String... params) {
             BluetoothSocket socket;
@@ -808,6 +940,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         res = data;
                         timer.cancel();
                         if (!Objects.equals(data, "")) {
+                            /**
+                             *Caso se receba algo diferente de uma String vazia, é feito um split
+                             * por :, atribuindo os valores recebidos às respetivas variaveis
+                             */
                             String[] split = data.split(":");
                             receivedId = Integer.parseInt(split[0]);
                             receivedName = split[1];
@@ -839,6 +975,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             super.onProgressUpdate(values);
         }
 
+        /**
+         * Método chamado quando se acaba a execução
+         */
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
@@ -858,24 +997,41 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
             }
             if (!Objects.equals(s, "timeout")) {
+                /**
+                 * Caso não tenha existido timeout
+                 */
                 AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
 
                 if (receivedId != -1) {
+                    /**
+                     * Caso se tenha recebido algo diferente de String vazia
+                     */
                     builder.setMessage(s);
                     builder.create().show();
                     button_bluetooth.setVisibility(View.INVISIBLE);
                     bluetooth_gif.setVisibility(View.INVISIBLE);
                     mPreview.setVisibility(View.VISIBLE);
                     if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) == null) {
+                        /**
+                         * É verificado se existe um Zombie com o Id recebido na lista.
+                         * Caso não exista o botão para iniciar o teste ZVK fica visivel
+                         */
                         button_zvk.setVisibility(View.VISIBLE);
                         textView_Info.setVisibility(View.INVISIBLE);
                     } else {
+                        /**
+                         * Caso contrário, o estado passa a ser STATE_WEAPON, pois o sujeito é um Zombie
+                         */
                         isZombie = true;
                         zvk_state = STATE_WEAPON;
                         textView_Info.setText("Choose your weapon!");
                         weaponButtonsVisible();
                     }
                 } else {
+                    /**
+                     * Caso se receba String vazia, é apresentado ao Zombie Runner que houve um erro
+                     * de comunicação e é necessário reiniciar o teste
+                     */
                     builder.setMessage("Error receiving information. Please restart the test!");
                     builder.create().show();
                     timer.cancel();
@@ -883,6 +1039,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     textView_Info.setVisibility(View.INVISIBLE);
                 }
             } else {
+                /**
+                 * Caso não se receba nada, ou seja, se houver um timeout, significa que o sujeito é
+                 * um Zombie e o estado passa a ser STATE_WEAPON
+                 */
                 isZombie = true;
                 zvk_state = STATE_WEAPON;
                 bluetooth_gif.setVisibility(View.INVISIBLE);
@@ -899,8 +1059,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     /**
-     * Factory for creating a face tracker to be associated with a new face.  The multiprocessor
-     * uses this factory to create face trackers as needed -- one for each individual.
+     * Criado um novo face tracker para ser associado a uma nova cara
      */
     private class GraphicFaceTrackerFactory implements MultiProcessor.Factory<Face> {
         @Override
@@ -909,10 +1068,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
-    /**
-     * Face tracker for each detected individual. This maintains a face graphic within the app's
-     * associated face overlay.
-     */
     private class GraphicFaceTracker extends Tracker<Face> {
         private double blinkLimit = 0.5;
 
@@ -923,11 +1078,15 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
 
         /**
-         * Start tracking the detected face instance within the face overlay.
+         * Começa o seguimento da cara
          */
         @Override
         public void onNewItem(int faceId, Face item) {
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                /**
+                 * Caso o estado seja STATE_TEST ou STATE_VERIFY verifica se os olhos do sujeito de
+                 * teste estão abertos ou fechados
+                 */
                 mFaceGraphic.setZombie(isZombie);
                 mFaceGraphic.setId(faceId);
 
@@ -941,6 +1100,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 } else {
                     flagL = 1;
                 }
+                /**
+                 * É enviada uma mensagem  de forma a que aceder-se à UI
+                 */
                 Message message = mHandler.obtainMessage();
                 Bundle bundle = new Bundle();
                 bundle.putString(FEEDBACK, "Start test!");
@@ -954,9 +1116,19 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
+            /**
+             * Método chamado quando exite uma alteração na cara
+             */
             if (zvk_state == STATE_TEST || zvk_state == STATE_VERIFY) {
+                /**
+                 * O update só é relevante quando estamos no estado STATE_TEST ou STATE_VERIFY
+                 */
                 mOverlay.add(mFaceGraphic);
                 mFaceGraphic.updateFace(face);
+                /**
+                 * Dependendo do estado da flag, é visto quando existe uma transição olho aberto - olho fechado
+                 * e vice-versa
+                 */
                 if (testing) {
                     if (flagR == 0 && face.getIsRightEyeOpenProbability() < blinkLimit) {
                         flagR = 1;
@@ -978,7 +1150,13 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         }
                     }
                     if (zvk_state == STATE_TEST) {
+                        /**
+                         * Se o processo estiver no estado STATE_TEST
+                         */
                         if (face.getIsSmilingProbability() > 0.5) {
+                            /**
+                             * Caso o sujeito de teste sorria, significa que não é Zombie
+                             */
                             isZombie = false;
                             timer.cancel();
                             Message message = mHandler.obtainMessage();
@@ -988,11 +1166,14 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             mHandler.sendMessage(message);
                             testing = false;
                         } else {
+                            /**
+                             * Caso existam 2 transições num olho, o número de blinks desse olho é
+                             * incrementado
+                             */
                             if (transitionR == 2) {
                                 blinksR++;
                                 transitionR = 0;
                             } else {
-
                                 if (transitionL == 2) {
                                     blinksR++;
                                     transitionL = 0;
@@ -1001,6 +1182,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         }
                     } else {
                         if (zvk_state == STATE_VERIFY) {
+                            /**
+                             * Caso o estado seja STATE_VERIFY, se existir uma transição, significa que
+                             * o Zombie não morreu
+                             */
                             if (transitionL != 0 || transitionR != 0) {
                                 isDead = false;
                                 Message message = mHandler.obtainMessage();
@@ -1018,9 +1203,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
 
         /**
-         * Hide the graphic when the corresponding face was not detected.  This can happen for
-         * intermediate frames temporarily (e.g., if the face was momentarily blocked from
-         * view).
+         * Esconde o face graphic quando a cara correspondente não for detetada.
          */
         @Override
         public void onMissing(FaceDetector.Detections<Face> detectionResults) {
@@ -1031,8 +1214,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
 
         /**
-         * Called when the face is assumed to be gone for good. Remove the graphic annotation from
-         * the overlay.
+         * Chamado quando é assumido que a cara desapareceu por completo
          */
         @Override
         public void onDone() {
