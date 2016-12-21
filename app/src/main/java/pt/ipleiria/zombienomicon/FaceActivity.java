@@ -39,6 +39,8 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.MultiProcessor;
@@ -64,7 +66,7 @@ import pt.ipleiria.zombienomicon.Model.Zombie;
 
 import static pt.ipleiria.zombienomicon.Model.Weapon.REVOLVER;
 
-public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener , LocationListener {
     public static final int STATE_BLUETOOTH = 1;
     public static final int STATE_TEST = 2;
     public static final int STATE_WEAPON = 3;
@@ -721,6 +723,13 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     public void onConnected(Bundle bundle) {
         Toast.makeText(FaceActivity.this, "Google API Client connected.", Toast.LENGTH_SHORT).show();
 
+        LocationRequest mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_LOW_POWER)
+                .setInterval(1000)
+                .setFastestInterval(2000);
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -750,11 +759,19 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         try {
             List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
             location = addresses.get(0).getAddressLine(0);
+            if(addresses.get(0).getCountryName()!=null){
+                location = location + addresses.get(0).getCountryName();
+            }
             Toast.makeText(FaceActivity.this, "Location read.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(FaceActivity.this, "ERROR: unable to get address from location.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation=location;
     }
 
     private class ServerTask extends AsyncTask<String, Void, String> {
