@@ -24,7 +24,7 @@ import com.google.android.gms.vision.face.Face;
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
 import pt.ipleiria.zombienomicon.Model.Weapon;
 
-import static com.google.android.gms.vision.face.Landmark.LEFT_EYE;
+import static com.google.android.gms.vision.face.Landmark.RIGHT_EYE;
 
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
@@ -97,13 +97,12 @@ class FaceGraphic extends GraphicOverlay.Graphic {
             mFacePositionPaint.setColor(Color.GREEN);
 
         }
-        canvas.drawText("id: " + mFaceId, x + ID_X_OFFSET, y + ID_Y_OFFSET, mIdPaint);
         canvas.drawText("happiness: " + String.format("%.2f", face.getIsSmilingProbability()), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
         canvas.drawText("right eye: " + String.format("%.2f", face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
         canvas.drawText("left eye: " + String.format("%.2f", face.getIsLeftEyeOpenProbability()), x - ID_X_OFFSET * 2, y - ID_Y_OFFSET * 2, mIdPaint);
 
-        float xRE = scaleX(face.getLandmarks().get(LEFT_EYE).getPosition().x);
-        float yRE = scaleY(face.getLandmarks().get(LEFT_EYE).getPosition().y);
+        float xRE = scaleX(face.getLandmarks().get(RIGHT_EYE).getPosition().x);
+        float yRE = scaleY(face.getLandmarks().get(RIGHT_EYE).getPosition().y);
 
         canvas.drawCircle(xRE, yRE, 5, mFacePositionPaint);
 
