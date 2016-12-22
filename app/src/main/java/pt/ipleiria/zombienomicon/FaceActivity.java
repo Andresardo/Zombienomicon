@@ -123,7 +123,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private TextView bluetooth_gif;
     private ImageView weaponImage;
 
-
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -154,6 +153,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        /*
+        ProgressBar mProgress = (ProgressBar) findViewById(R.id.progressBar);
+        mProgress.setIndeterminate(false);
+        mProgress.setMax(100);
+        mProgress.setProgress(50);*/
 
         buildGoogleApiClient();
         mGoogleApiClient.connect();
@@ -164,6 +168,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
                 textView_Timer.setText(getString(R.string.time_left) + millisUntilFinished / 1000);
+                //mProgress.setProgress((int)millisUntilFinished/100);
             }
 
             /**
@@ -183,7 +188,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                              */
                             isZombie = true;
                             zvk_state = STATE_WEAPON;
-                            textView_Info.setText("Choose your weapon!");
+                            textView_Info.setText(R.string.choose_weapon);
                             weaponButtonsVisible();
                         } else {
                             /**
@@ -264,7 +269,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 .setAction(R.string.ok, listener)
                 .show();
     }
-
 
     /**
      * Cria e inicia a camâra.
@@ -424,7 +428,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 default:
                     Toast.makeText(this, "No weapon is selected!", Toast.LENGTH_SHORT).show();
                     break;
-
             }
         }
     }
@@ -439,6 +442,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         transitionL = 0;
         zvk_state = STATE_VERIFY;
         textView_Info.setText(R.string.movement_detected);
+        weaponImage.setVisibility(View.INVISIBLE);
         timer.cancel();
     }
 
@@ -446,7 +450,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         Toast.makeText(this, sensor.getName() + "accuracy changed to " + accuracy, Toast.LENGTH_SHORT).show();
     }
-
 
     /**
      * Mátodo de callback chamado quando se pretende pedir permissões.
@@ -485,7 +488,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     // Camera Source Preview
     //==============================================================================================
 
-
     /**
      * Começa ou reinicia a camera source, se exitir.
      */
@@ -520,7 +522,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_zvk.setVisibility(View.INVISIBLE);
         textView_Info.setText(R.string.subject_search);
         textView_Info.setVisibility(View.VISIBLE);
-
     }
 
     /**
@@ -535,7 +536,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         if (mBluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available.", Toast.LENGTH_SHORT).show();
         }
-
         if (!mBluetoothAdapter.isEnabled()) {
             Toast.makeText(this, "Bluetooth is not enabled.", Toast.LENGTH_SHORT).show();
 
@@ -562,7 +562,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     public void buttonStartOnClick(View view) {
         timer.start();
         button_start.setVisibility(View.INVISIBLE);
-        textView_Info.setText("Testing the subject!");
+        textView_Info.setText(R.string.testing_subject);
         testing = true;
         startCameraSource();
     }
@@ -573,11 +573,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     public void buttonSwordOnClick(View view) {
         selected_weapon = Weapon.SWORD;
-        if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weapon);
-        }
         weaponImage.setVisibility(View.VISIBLE);
-        weaponImage.setImageResource(R.drawable.sword);
+        weaponImage.setImageResource(R.drawable.sword_fps);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -591,9 +588,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     public void buttonLightsaberOnClick(View view) {
         selected_weapon = Weapon.LIGHTSABER;
-        if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weapon);
-        }
+        weaponImage.setVisibility(View.VISIBLE);
+        weaponImage.setImageResource(R.drawable.light_saber_fps);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -607,10 +603,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     public void buttonRevolverOnClick(View view) {
         selected_weapon = REVOLVER;
-        if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weapon);
-        }
-
+        weaponImage.setVisibility(View.VISIBLE);
+        weaponImage.setImageResource(R.drawable.revolver_fps);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -624,9 +618,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     public void buttonFistOnClick(View view) {
         selected_weapon = Weapon.FIST;
-        if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weapon);
-        }
+        weaponImage.setVisibility(View.VISIBLE);
+        weaponImage.setImageResource(R.drawable.fist);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -640,9 +633,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     public void buttonWhipOnClick(View view) {
         selected_weapon = Weapon.WHIP;
-        if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weapon);
-        }
+        weaponImage.setVisibility(View.VISIBLE);
+        weaponImage.setImageResource(R.drawable.whip_fps);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -656,9 +648,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     public void buttonRollingPinOnClick(View view) {
         selected_weapon = Weapon.ROLLINGPIN;
-        if (mFaceGraphic != null) {
-            mFaceGraphic.setWeapon(selected_weapon);
-        }
+        weaponImage.setVisibility(View.VISIBLE);
+        weaponImage.setImageResource(R.drawable.rolling_pin_fps);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();
@@ -677,6 +668,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_whip.setVisibility(View.VISIBLE);
         button_fist.setVisibility(View.VISIBLE);
         button_revolver.setVisibility(View.VISIBLE);
+        textView_Timer.setVisibility(View.INVISIBLE);
     }
 
     /**
@@ -690,6 +682,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_whip.setVisibility(View.INVISIBLE);
         button_fist.setVisibility(View.INVISIBLE);
         button_revolver.setVisibility(View.INVISIBLE);
+        textView_Timer.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -806,8 +799,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          * É feito o release do detetor e da camara
          */
         zvk_state = STATE_FINAL;
-        detector.release();
-        mCameraSource.release();
+        if(detector!=null){
+            detector.release();
+        }
+        if(mCameraSource!=null) {
+            mCameraSource.release();
+        }
 
         editConfirmation.setCancelable(false);
         editConfirmation.show();
@@ -933,7 +930,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     res = "timeout";
                     break;
                 }
-
                 if (socket != null) { // if a connection was accepted
                     try {
                         String data = receiveData(socket);
@@ -953,7 +949,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                     try {
                         mmServerSocket.close();
                         inputStream.close();
@@ -966,14 +961,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     }
                 }
             }
-
             return res;
-        }
-
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
         }
 
         /**
@@ -1025,7 +1013,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                          */
                         isZombie = true;
                         zvk_state = STATE_WEAPON;
-                        textView_Info.setText("Choose your weapon!");
+                        textView_Info.setText(R.string.choose_weapon);
                         weaponButtonsVisible();
                     }
                 } else {
@@ -1047,7 +1035,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 isZombie = true;
                 zvk_state = STATE_WEAPON;
                 bluetooth_gif.setVisibility(View.INVISIBLE);
-                textView_Info.setText("Choose your weapon!");
+                textView_Info.setText(R.string.choose_weapon);
                 weaponButtonsVisible();
             }
         }
@@ -1075,7 +1063,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         GraphicFaceTracker(GraphicOverlay overlay) {
             mOverlay = overlay;
             mFaceGraphic = new FaceGraphic(overlay);
-            mFaceGraphic.setWeapon(selected_weapon);
         }
 
         /**

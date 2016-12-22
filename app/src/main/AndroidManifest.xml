@@ -35,7 +35,8 @@
             android:name=".SearchActivity"
             android:windowSoftInputMode="stateHidden|adjustPan" />
         <activity android:name=".AddActivity" />
-        <activity android:name=".FaceActivity" />
+        <activity android:name=".FaceActivity"
+                    android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

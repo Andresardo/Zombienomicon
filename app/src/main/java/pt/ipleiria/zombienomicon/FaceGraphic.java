@@ -18,13 +18,15 @@ package pt.ipleiria.zombienomicon;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 
 import com.google.android.gms.vision.face.Face;
+import com.google.android.gms.vision.face.Landmark;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
-import pt.ipleiria.zombienomicon.Model.Weapon;
-
-import static com.google.android.gms.vision.face.Landmark.RIGHT_EYE;
 
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
@@ -36,15 +38,21 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private static final float ID_Y_OFFSET = 50.0f;
     private static final float ID_X_OFFSET = -50.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
+    private static final float EYE_RADIUS_PROPORTION = 0.45f;
+    private static final float IRIS_RADIUS_PROPORTION = EYE_RADIUS_PROPORTION / 2.0f;
 
     private Paint mFacePositionPaint;
     private Paint mIdPaint;
     private Paint mBoxPaint;
-
+    private Paint mEyeCross;
+    // Record the previously seen proportions of the landmark locations relative to the bounding box
+    // of the face.  These proportions can be used to approximate where the landmarks are within the
+    // face bounding box if the eye landmark is missing in a future update.
+    private Map<Integer, PointF> mPreviousProportions = new HashMap<>();
     private volatile Face mFace;
-    private int mFaceId;
     private boolean isZombie;
-    private Weapon selected_weap;
+    private volatile PointF mLeftPosition;
+    private volatile PointF mRightPosition;
 
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
@@ -57,12 +65,10 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint = new Paint();
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
-    }
 
-    void setId(int id) {
-        mFaceId = id;
-    }
 
+        mEyeCross = new Paint();
+    }
 
     /**
      * Updates the face instance from the detection of the most recent frame.  Invalidates the
@@ -70,6 +76,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
      */
     void updateFace(Face face) {
         mFace = face;
+        updatePreviousProportions(face);
+        mLeftPosition = getLandmarkPosition(face, Landmark.LEFT_EYE);
+        mRightPosition = getLandmarkPosition(face, Landmark.RIGHT_EYE);
         postInvalidate();
     }
 
@@ -95,16 +104,10 @@ class FaceGraphic extends GraphicOverlay.Graphic {
             mIdPaint.setColor(Color.GREEN);
             mBoxPaint.setColor(Color.GREEN);
             mFacePositionPaint.setColor(Color.GREEN);
-
         }
         canvas.drawText("happiness: " + String.format("%.2f", face.getIsSmilingProbability()), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
         canvas.drawText("right eye: " + String.format("%.2f", face.getIsRightEyeOpenProbability()), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
         canvas.drawText("left eye: " + String.format("%.2f", face.getIsLeftEyeOpenProbability()), x - ID_X_OFFSET * 2, y - ID_Y_OFFSET * 2, mIdPaint);
-
-        float xRE = scaleX(face.getLandmarks().get(RIGHT_EYE).getPosition().x);
-        float yRE = scaleY(face.getLandmarks().get(RIGHT_EYE).getPosition().y);
-
-        canvas.drawCircle(xRE, yRE, 5, mFacePositionPaint);
 
         // Draws a bounding box around the face.
         float xOffset = scaleX(face.getWidth() / 2.0f);
@@ -114,14 +117,47 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float right = x + xOffset;
         float bottom = y + yOffset;
         canvas.drawRect(left, top, right, bottom, mBoxPaint);
+
+        if ((mLeftPosition == null) || (mRightPosition == null)) {
+            return;
+        }
+        PointF leftPosition = new PointF(translateX(mLeftPosition.x), translateY(mLeftPosition.y));
+        PointF rightPosition = new PointF(translateX(mRightPosition.x), translateY(mRightPosition.y));
+
+        drawEyeCross(leftPosition);
+        drawEyeCross(rightPosition);
     }
 
-    public void setZombie(boolean isZombie) {
+     void setZombie(boolean isZombie) {
         this.isZombie = isZombie;
     }
 
-    public void setWeapon(Weapon weap) {
-        this.selected_weap = weap;
+    private void updatePreviousProportions(Face face) {
+        for (Landmark landmark : face.getLandmarks()) {
+            PointF position = landmark.getPosition();
+            float xProp = (position.x - face.getPosition().x) / face.getWidth();
+            float yProp = (position.y - face.getPosition().y) / face.getHeight();
+            mPreviousProportions.put(landmark.getType(), new PointF(xProp, yProp));
+        }
     }
+    /**
+     * Finds a specific landmark position, or approximates the position based on past observations
+     * if it is not present.
+     */
+    private PointF getLandmarkPosition(Face face, int landmarkId) {
+        for (Landmark landmark : face.getLandmarks()) {
+            if (landmark.getType() == landmarkId) {
+                return landmark.getPosition();
+            }
+        }
 
+        PointF prop = mPreviousProportions.get(landmarkId);
+        if (prop == null) {
+            return null;
+        }
+
+        float x = face.getPosition().x + (prop.x * face.getWidth());
+        float y = face.getPosition().y + (prop.y * face.getHeight());
+        return new PointF(x, y);
+    }
 }

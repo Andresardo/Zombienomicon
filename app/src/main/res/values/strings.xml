@@ -63,4 +63,14 @@
     <string name="receive_id_wait">Waiting to receive ID...</string>
     <string name="subject_scan">Scanning the subject!</string>
     <string name="time_left">Time Left:</string>
+    <string name="selected__weapon">Selected Weapon</string>
+    <string name="select_rolling_pin">Select Rolling Pin</string>
+    <string name="select_whip">Select Whip</string>
+    <string name="select_fist">Select Fist</string>
+    <string name="select_revolver">Select Revolver</string>
+    <string name="select_lightsaber">Select Light Saber</string>
+    <string name="select_sword">Select Sword</string>
+    <string name="start">Start</string>
+    <string name="testing_subject">Testing the subject!</string>
+    <string name="choose_weapon">Choose your weapon!</string>
 </resources>
