@@ -50,6 +50,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     // face bounding box if the eye landmark is missing in a future update.
     private Map<Integer, PointF> mPreviousProportions = new HashMap<>();
     private volatile Face mFace;
+    private int mFaceId;
     private boolean isZombie;
     private volatile PointF mLeftPosition;
     private volatile PointF mRightPosition;
@@ -70,6 +71,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mEyeCross = new Paint();
     }
 
+    void setId(int id) {
+        mFaceId = id;
+    }
     /**
      * Updates the face instance from the detection of the most recent frame.  Invalidates the
      * relevant portions of the overlay to trigger a redraw.
@@ -118,14 +122,14 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float bottom = y + yOffset;
         canvas.drawRect(left, top, right, bottom, mBoxPaint);
 
-        if ((mLeftPosition == null) || (mRightPosition == null)) {
-            return;
-        }
-        PointF leftPosition = new PointF(translateX(mLeftPosition.x), translateY(mLeftPosition.y));
-        PointF rightPosition = new PointF(translateX(mRightPosition.x), translateY(mRightPosition.y));
+        /* TODO
+        if ((mLeftPosition != null) || (mRightPosition != null)) {
+            PointF leftPosition = new PointF(translateX(mLeftPosition.x), translateY(mLeftPosition.y));
+            PointF rightPosition = new PointF(translateX(mRightPosition.x), translateY(mRightPosition.y));
 
-        drawEyeCross(leftPosition);
-        drawEyeCross(rightPosition);
+            drawEyeCross(leftPosition);
+            drawEyeCross(rightPosition);
+        }*/
     }
 
      void setZombie(boolean isZombie) {

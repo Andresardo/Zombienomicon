@@ -376,7 +376,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 case LIGHTSABER:
                     if (x > 15 || x < -15 || y > 15 || y < -15 || z > 15 || z < -15) {
                         movementDetection();
-                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.sword);
+                        MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.lightsaber);
                         sound.start();
                         timer.cancel();
                     }
@@ -421,6 +421,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         transitionW++;
                     }
                     if (transitionW == 3) {
+                        transitionW=0;
                         movementDetection();
                         timer.cancel();
                     }
@@ -619,7 +620,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     public void buttonFistOnClick(View view) {
         selected_weapon = Weapon.FIST;
         weaponImage.setVisibility(View.VISIBLE);
-        weaponImage.setImageResource(R.drawable.fist);
+        weaponImage.setImageResource(R.drawable.fist_fps);
         zvk_state = STATE_KILL;
         textView_Info.setText(R.string.exterminate);
         timer.start();

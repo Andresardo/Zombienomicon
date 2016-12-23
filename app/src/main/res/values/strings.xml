@@ -58,9 +58,9 @@
     <string name="subject_human">The subject is human!</string>
     <string name="you_died">You died!</string>
     <string name="zombie_died">The Zombie died!</string>
-    <string name="movement_detected">Movement detection!</string>
+    <string name="movement_detected">Movement detected! Scan subject!</string>
     <string name="subject_search">Searching for subject!</string>
-    <string name="receive_id_wait">Waiting to receive ID...</string>
+    <string name="receive_id_wait">Waiting to receive ID…</string>
     <string name="subject_scan">Scanning the subject!</string>
     <string name="time_left">Time Left:</string>
     <string name="selected__weapon">Selected Weapon</string>
