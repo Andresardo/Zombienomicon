@@ -10,11 +10,11 @@
         android:id="@+id/bluetooth_gif"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@+id/button_ZVK"
         android:layout_alignParentStart="true"
         android:drawableStart="@drawable/bluetooth"
         android:drawableTop="@drawable/bluetooth"
-        android:visibility="visible"
-        android:layout_above="@+id/button_ZVK" />
+        android:visibility="visible" />
 
     <Button
         android:id="@+id/button_ZVK"
@@ -22,10 +22,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
+        android:layout_alignTop="@+id/button_bluetooth"
         android:onClick="buttonZVKOnClick"
         android:text="@string/button_zvk_start"
-        android:visibility="invisible"
-        android:layout_alignTop="@+id/button_bluetooth" />
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/button_bluetooth"
@@ -78,10 +78,10 @@
         android:layout_width="wrap_content"
         android:layout_height="60dp"
         android:layout_alignParentEnd="true"
+        android:layout_below="@+id/bluetooth_gif"
         android:onClick="buttonStartOnClick"
         android:text="@string/start"
-        android:visibility="invisible"
-        android:layout_below="@+id/bluetooth_gif" />
+        android:visibility="invisible" />
 
 
     <ImageButton
@@ -99,13 +99,13 @@
         android:id="@+id/Button_Lightsaber"
         android:layout_width="180dp"
         android:layout_height="170dp"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="12dp"
         android:background="@drawable/light_saber"
         android:contentDescription="@string/select_lightsaber"
         android:onClick="buttonLightsaberOnClick"
-        android:visibility="invisible"
-        android:layout_alignParentEnd="true" />
+        android:visibility="invisible" />
 
     <ImageButton
         android:id="@+id/Button_Revolver"
@@ -122,13 +122,13 @@
         android:id="@+id/Button_Fist"
         android:layout_width="180dp"
         android:layout_height="170dp"
+        android:layout_alignBottom="@+id/Button_RollingPin"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/Button_Revolver"
         android:background="@drawable/fist"
         android:contentDescription="@string/select_fist"
         android:onClick="buttonFistOnClick"
-        android:visibility="invisible"
-        android:layout_alignBottom="@+id/Button_RollingPin" />
+        android:visibility="invisible" />
 
     <ImageButton
         android:id="@+id/Button_Whip"
@@ -156,10 +156,10 @@
         android:id="@+id/weaponImage"
         android:layout_width="200dp"
         android:layout_height="200dp"
+        android:layout_alignBottom="@+id/Button_RollingPin"
         android:layout_alignParentEnd="true"
         android:contentDescription="@string/selected__weapon"
-        android:visibility="invisible"
-        android:layout_alignBottom="@+id/Button_RollingPin" />
+        android:visibility="invisible" />
 
     <!--<ProgressBar
         style="@android:style/Widget.ProgressBar.Horizontal"

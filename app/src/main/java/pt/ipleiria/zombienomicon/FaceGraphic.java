@@ -40,11 +40,14 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private static final float BOX_STROKE_WIDTH = 5.0f;
     private static final float EYE_RADIUS_PROPORTION = 0.45f;
     private static final float IRIS_RADIUS_PROPORTION = EYE_RADIUS_PROPORTION / 2.0f;
+    private final Paint mEyeWhitesPaint;
+    private final Paint mEyeLidPaint;
+    private final Paint mEyeIrisPaint;
+    private final Paint mEyeOutlinePaint;
 
     private Paint mFacePositionPaint;
     private Paint mIdPaint;
     private Paint mBoxPaint;
-    private Paint mEyeCross;
     // Record the previously seen proportions of the landmark locations relative to the bounding box
     // of the face.  These proportions can be used to approximate where the landmarks are within the
     // face bounding box if the eye landmark is missing in a future update.
@@ -54,6 +57,8 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     private boolean isZombie;
     private volatile PointF mLeftPosition;
     private volatile PointF mRightPosition;
+    private boolean mLeftOpen;
+    private boolean mRightOpen;
 
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
@@ -67,8 +72,22 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
 
+        mEyeWhitesPaint = new Paint();
+        mEyeWhitesPaint.setColor(Color.WHITE);
+        mEyeWhitesPaint.setStyle(Paint.Style.FILL);
 
-        mEyeCross = new Paint();
+        mEyeLidPaint = new Paint();
+        mEyeLidPaint.setColor(Color.YELLOW);
+        mEyeLidPaint.setStyle(Paint.Style.FILL);
+
+        mEyeIrisPaint = new Paint();
+        mEyeIrisPaint.setColor(Color.BLACK);
+        mEyeIrisPaint.setStyle(Paint.Style.FILL);
+
+        mEyeOutlinePaint = new Paint();
+        mEyeOutlinePaint.setColor(Color.BLACK);
+        mEyeOutlinePaint.setStyle(Paint.Style.STROKE);
+        mEyeOutlinePaint.setStrokeWidth(5);
     }
 
     void setId(int id) {
@@ -83,6 +102,9 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         updatePreviousProportions(face);
         mLeftPosition = getLandmarkPosition(face, Landmark.LEFT_EYE);
         mRightPosition = getLandmarkPosition(face, Landmark.RIGHT_EYE);
+        mLeftOpen = mFace.getIsLeftEyeOpenProbability() > 0.5;
+        mRightOpen = mFace.getIsRightEyeOpenProbability() > 0.5;
+
         postInvalidate();
     }
 
@@ -122,14 +144,18 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float bottom = y + yOffset;
         canvas.drawRect(left, top, right, bottom, mBoxPaint);
 
-        /* TODO
-        if ((mLeftPosition != null) || (mRightPosition != null)) {
+        if ((mLeftPosition != null) && (mRightPosition != null)) {
             PointF leftPosition = new PointF(translateX(mLeftPosition.x), translateY(mLeftPosition.y));
             PointF rightPosition = new PointF(translateX(mRightPosition.x), translateY(mRightPosition.y));
 
-            drawEyeCross(leftPosition);
-            drawEyeCross(rightPosition);
-        }*/
+            // Use the inter-eye distance to set the size of the eyes.
+            float distance = (float) Math.sqrt(Math.pow(rightPosition.x - leftPosition.x, 2) + Math.pow(rightPosition.y - leftPosition.y, 2));
+            float eyeRadius = EYE_RADIUS_PROPORTION * distance;
+            float irisRadius = IRIS_RADIUS_PROPORTION * distance;
+
+            drawEye(canvas, leftPosition, eyeRadius, irisRadius, mLeftOpen);
+            drawEye(canvas, rightPosition, eyeRadius, irisRadius, mRightOpen);
+        }
     }
 
      void setZombie(boolean isZombie) {
@@ -163,5 +189,22 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float x = face.getPosition().x + (prop.x * face.getWidth());
         float y = face.getPosition().y + (prop.y * face.getHeight());
         return new PointF(x, y);
+    }
+
+    /**
+     * Draws the eye, either closed or open with the iris in the current position.
+     */
+    private void drawEye(Canvas canvas, PointF eyePosition, float eyeRadius, float irisRadius, boolean isOpen) {
+        if (isOpen) {
+            canvas.drawCircle(eyePosition.x, eyePosition.y, eyeRadius, mEyeWhitesPaint);
+            canvas.drawCircle(eyePosition.x, eyePosition.y, irisRadius, mEyeIrisPaint);
+        } else {
+            canvas.drawCircle(eyePosition.x, eyePosition.y, eyeRadius, mEyeLidPaint);
+            float y = eyePosition.y;
+            float start = eyePosition.x - eyeRadius;
+            float end = eyePosition.x + eyeRadius;
+            canvas.drawLine(start, y, end, y, mEyeOutlinePaint);
+        }
+        canvas.drawCircle(eyePosition.x, eyePosition.y, eyeRadius, mEyeOutlinePaint);
     }
 }

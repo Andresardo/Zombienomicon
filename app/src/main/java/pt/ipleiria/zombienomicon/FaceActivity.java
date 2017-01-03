@@ -99,7 +99,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private Button button_start;
     private SensorManager mSensorManager;
     private Sensor mSensor;
-    private boolean isDead = false;
+    private boolean isDead = true;
     private boolean isZombie = false;
     private TextView textView_Info;
     private Handler mHandler;
@@ -167,7 +167,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
-                textView_Timer.setText(getString(R.string.time_left) + millisUntilFinished / 1000);
+                String str = getString(R.string.time_left) + millisUntilFinished / 1000;
+                textView_Timer.setText(str);
                 //mProgress.setProgress((int)millisUntilFinished/100);
             }
 
@@ -295,7 +296,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_FRONT)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedFps(30.0f)
                 .build();
 
