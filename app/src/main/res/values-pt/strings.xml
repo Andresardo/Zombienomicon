@@ -46,5 +46,32 @@
     <string name="empty_date">Campo Data tem de ser preenchido</string>
     <string name="empty_id">Campo Id tem de ser preenchido</string>
     <string name="id_already_exists">Id já existe!</string>
+    <string name="button_zvk_start">Iniciar Teste ZVK</string>
+    <string name="choose_weapon">Selecione a sua arma!</string>
+    <string name="exterminate">Exterminar</string>
+    <string name="id_received">Id recebido!</string>
+    <string name="movement_detected">Movimento detetado! Analize o sujeito!</string>
+    <string name="no_camera_permission">Esta aplicação não pode iniciar pois não tem permissões da camera. A aplicação irá agora encerrar.</string>
+    <string name="ok">OK</string>
+    <string name="permission_camera_rationale">É necessário o acesso  à camera para a deteção</string>
+    <string name="read_from_network">Ler a partir da rede</string>
+    <string name="receive_id">Receber Informação</string>
+    <string name="receive_id_wait">Aguardando a receção de Informação...</string>
+    <string name="select_fist">Selecionar Punho</string>
+    <string name="selected__weapon">Arma selecionada</string>
+    <string name="select_whip">Selecionar Chicote</string>
+    <string name="select_sword">Selecionar Espada</string>
+    <string name="select_rolling_pin">Selecionar Rolo de Massa</string>
+    <string name="select_revolver">Selecionar Revolver</string>
+    <string name="select_lightsaber">Selecionar Light Saber</string>
+    <string name="start">Iniciar</string>
+    <string name="time_left">Tempo Restante:</string>
+    <string name="testing_subject">Testando o sujeito!</string>
+    <string name="subject_search">Procurando pelo sujeito!</string>
+    <string name="subject_scan">Analizando o sujeito!</string>
+    <string name="subject_human">O sujeito é humano|</string>
+    <string name="waiting_start">Esperando pelo Inicio!</string>
+    <string name="you_died">Voçê morreu!</string>
+    <string name="zombie_died">O Zombie morreu!</string>
 
 </resources>

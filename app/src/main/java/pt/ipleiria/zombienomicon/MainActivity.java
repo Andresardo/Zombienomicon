@@ -312,8 +312,6 @@ public class MainActivity extends AppCompatActivity {
                 if (networkInfo != null && networkInfo.isConnected()) {
                     DownloadContactsTask downloadContactsTask = new DownloadContactsTask();
                     downloadContactsTask.execute(URL);
-                    Toast.makeText(MainActivity.this,
-                            "Contacts loaded from network resource!", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(MainActivity.this, "Error: no network connection.", Toast.LENGTH_SHORT).show();
                 }
@@ -550,8 +548,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 // establish the connection to the network resource
                 URL url = new URL(urls[0]);
-                HttpURLConnection httpURLConnection =
-                        (HttpURLConnection) url.openConnection();
+                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setReadTimeout(10000);
                 httpURLConnection.setConnectTimeout(15000);
                 httpURLConnection.setRequestMethod("GET");
@@ -578,6 +575,7 @@ public class MainActivity extends AppCompatActivity {
                 parseZombie(result);
                 createSimpleAdapter(zombienomicon.getZombies());
                 zombie_list.setAdapter(simpleadapter);
+                Toast.makeText(MainActivity.this, "Contacts loaded from network resource!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
             }
