@@ -47,6 +47,7 @@ import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
+import com.google.zxing.Result;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,6 +57,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
+import me.dm7.barcodescanner.zxing.ZXingScannerView;
 import pt.ipleiria.zombienomicon.Model.CameraSourcePreview;
 import pt.ipleiria.zombienomicon.Model.Gender;
 import pt.ipleiria.zombienomicon.Model.GraphicOverlay;
@@ -66,18 +68,19 @@ import pt.ipleiria.zombienomicon.Model.Zombie;
 
 import static pt.ipleiria.zombienomicon.Model.Weapon.REVOLVER;
 
-public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener , LocationListener {
+public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener , LocationListener, ZXingScannerView.ResultHandler {
     public static final int STATE_BLUETOOTH = 1;
-    public static final int STATE_TEST = 2;
-    public static final int STATE_WEAPON = 3;
-    public static final int STATE_KILL = 4;
-    public static final int STATE_VERIFY = 5;
+    public static final int STATE_QR_CODE = 2;
+    public static final int STATE_TEST = 3;
+    public static final int STATE_WEAPON = 4;
+    public static final int STATE_KILL = 5;
+    public static final int STATE_VERIFY = 6;
+    public static final int STATE_FINAL = 7;
     private static final String TAG = "FaceTracker";
     private static final int RC_HANDLE_GMS = 9001;
     private static final int RC_HANDLE_CAMERA_PERM = 2;
     private static final String MY_UUID = "8bed9cd2-e835-4163-af66-23ae08c9d6b1";
     private static final String FEEDBACK = "feedback";
-    private static final int STATE_FINAL = 6;
     private CameraSource mCameraSource = null;
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
@@ -122,6 +125,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     private FaceGraphic mFaceGraphic;
     private TextView bluetooth_gif;
     private ImageView weaponImage;
+    private ZXingScannerView mScannerView;
+    private boolean bluetooth_source;
 
     //==============================================================================================
     // Activity Methods
@@ -135,27 +140,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         super.onCreate(icicle);
         setContentView(R.layout.activity_face);
 
-        textView_Timer = (TextView) findViewById(R.id.textView_Timer);
-        textView_Info = (TextView) findViewById(R.id.textView_Info);
-        mPreview = (CameraSourcePreview) findViewById(R.id.preview);
-        mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
-        button_bluetooth = (Button) findViewById(R.id.button_bluetooth);
-        button_zvk = (Button) findViewById(R.id.button_ZVK);
-        button_start = (Button) findViewById(R.id.Start);
-        button_fist = (ImageButton) findViewById(R.id.Button_Fist);
-        button_sword = (ImageButton) findViewById(R.id.Button_Sword);
-        button_lightsaber = (ImageButton) findViewById(R.id.Button_Lightsaber);
-        button_whip = (ImageButton) findViewById(R.id.Button_Whip);
-        button_revolver = (ImageButton) findViewById(R.id.Button_Revolver);
-        button_rollingPin = (ImageButton) findViewById(R.id.Button_RollingPin);
-        bluetooth_gif = (TextView) findViewById(R.id.bluetooth_gif);
-        weaponImage = (ImageView) findViewById(R.id.weaponImage);
-
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        buildGoogleApiClient();
-        mGoogleApiClient.connect();
+        init();
 
         /**
          * Timer de 30 segundos
@@ -171,6 +156,20 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
              */
             public void onFinish() {
                 switch (zvk_state) {
+                    /**
+                    * Caso não se receba nada, significa que o sujeito é
+                    * um Zombie e o estado passa a ser STATE_WEAPON
+                    */
+                    case STATE_QR_CODE:
+
+                        isZombie = true;
+                        zvk_state = STATE_WEAPON;
+                        mScannerView.stopCamera();
+                        mScannerView.setVisibility(View.INVISIBLE);
+                        textView_Info.setText(R.string.choose_weapon);
+                        mPreview.setVisibility(View.VISIBLE);
+                        weaponButtonsVisible();
+                        break;
                     /**
                      * Caso o timer chegue ao fim da contagem quando o processo se encontra no estado
                      * STATE_TEST, verifica-se se os olhos foram piscados 5 ou mais vezes
@@ -224,6 +223,55 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 }
             }
         };
+
+        android.support.v7.app.AlertDialog.Builder infoSource = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
+        infoSource.setTitle("Information source");
+        infoSource.setMessage("Bluetooth or QR Code?");
+        infoSource.setPositiveButton(
+                "Bluetooth",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        bluetooth_source = true;
+                        dialog.cancel();
+
+                    }
+                });
+
+        infoSource.setNegativeButton(
+                "QR Code",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        bluetooth_gif.setVisibility(View.INVISIBLE);
+                        bluetooth_source = false;
+                    }
+                });
+        infoSource.setCancelable(false);
+        infoSource.show();
+    }
+
+    private void init() {
+        textView_Timer = (TextView) findViewById(R.id.textView_Timer);
+        textView_Info = (TextView) findViewById(R.id.textView_Info);
+        mPreview = (CameraSourcePreview) findViewById(R.id.preview);
+        mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+        button_bluetooth = (Button) findViewById(R.id.button_bluetooth);
+        button_zvk = (Button) findViewById(R.id.button_ZVK);
+        button_start = (Button) findViewById(R.id.Start);
+        button_fist = (ImageButton) findViewById(R.id.Button_Fist);
+        button_sword = (ImageButton) findViewById(R.id.Button_Sword);
+        button_lightsaber = (ImageButton) findViewById(R.id.Button_Lightsaber);
+        button_whip = (ImageButton) findViewById(R.id.Button_Whip);
+        button_revolver = (ImageButton) findViewById(R.id.Button_Revolver);
+        button_rollingPin = (ImageButton) findViewById(R.id.Button_RollingPin);
+        bluetooth_gif = (TextView) findViewById(R.id.bluetooth_gif);
+        weaponImage = (ImageView) findViewById(R.id.weaponImage);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
+
         /**
          * Verifica se tem permissão da câmara antes de lhe aceder
          */
@@ -526,26 +574,42 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      * É criada uma AssyncTask que espera pelos dados.
      */
     public void buttonBluetoothOnClick(View view) {
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(bluetooth_source) {
+           mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(this, R.string.bluetooth_not_available, Toast.LENGTH_SHORT).show();
-        }
-        if (!mBluetoothAdapter.isEnabled()) {
-            Toast.makeText(this, R.string.bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
+           if (mBluetoothAdapter == null) {
+               Toast.makeText(this, R.string.bluetooth_not_available, Toast.LENGTH_SHORT).show();
+           }
+           if (!mBluetoothAdapter.isEnabled()) {
+               Toast.makeText(this, R.string.bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
 
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivity(enableBtIntent);
+               Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+               startActivity(enableBtIntent);
 
-        } else {
-            zvk_state = STATE_BLUETOOTH;
+           } else {
+               zvk_state = STATE_BLUETOOTH;
+               button_bluetooth.setVisibility(View.INVISIBLE);
+               bluetooth_gif.setVisibility(View.VISIBLE);
+               textView_Info.setVisibility(View.VISIBLE);
+               textView_Info.setText(R.string.receive_id_wait);
+               timer.start();
+               ServerTask serverTask = new ServerTask();
+               serverTask.execute();
+           }
+        }else {
+            zvk_state = STATE_QR_CODE;
             button_bluetooth.setVisibility(View.INVISIBLE);
-            bluetooth_gif.setVisibility(View.VISIBLE);
             textView_Info.setVisibility(View.VISIBLE);
             textView_Info.setText(R.string.receive_id_wait);
+            textView_Timer.setVisibility(View.VISIBLE);
+            mScannerView = new ZXingScannerView(this);
+            mCameraSource.release();
+            mPreview.release();
+            setContentView(mScannerView);
+            mScannerView.setResultHandler(this);
+            mScannerView.startCamera();
             timer.start();
-            ServerTask serverTask = new ServerTask();
-            serverTask.execute();
+
         }
     }
 
@@ -899,6 +963,44 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation=location;
+    }
+
+    @Override
+    public void handleResult(Result result) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
+        String[] split = result.getText().split(":");
+        receivedId = Integer.parseInt(split[0]);
+        receivedName = split[1];
+        receivedGender = Gender.StringGender(split[2]);
+        setContentView(R.layout.activity_face);
+        init();
+        mPreview.setVisibility(View.VISIBLE);
+        mGraphicOverlay.setVisibility(View.VISIBLE);
+        bluetooth_gif.setVisibility(View.INVISIBLE);
+        button_bluetooth.setVisibility(View.INVISIBLE);
+        if (receivedId != -1) {
+            /**
+             * Caso se tenha recebido algo diferente de String vazia
+             */
+            builder.setMessage(result.getText());
+            builder.create().show();
+            if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) == null) {
+                /**
+                 * É verificado se existe um Zombie com o Id recebido na lista.
+                 * Caso não exista o botão para iniciar o teste ZVK fica visivel
+                 */
+                button_zvk.setVisibility(View.VISIBLE);
+                textView_Info.setVisibility(View.INVISIBLE);
+            } else {
+                /**
+                 * Caso contrário, o estado passa a ser STATE_WEAPON, pois o sujeito é um Zombie
+                 */
+                isZombie = true;
+                zvk_state = STATE_WEAPON;
+                textView_Info.setText(R.string.choose_weapon);
+                weaponButtonsVisible();
+            }
+        }
     }
 
     /**

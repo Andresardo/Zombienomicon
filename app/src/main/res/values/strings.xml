@@ -61,7 +61,7 @@
     <string name="subject_search">Searching for subject!</string>
     <string name="receive_id_wait">Waiting to receive Info…</string>
     <string name="subject_scan">Scanning the subject!</string>
-    <string name="time_left">\"Time Left: \"</string>
+    <string name="time_left">Time Left: </string>
     <string name="selected__weapon">Selected Weapon</string>
     <string name="select_rolling_pin">Select Rolling Pin</string>
     <string name="select_whip">Select Whip</string>

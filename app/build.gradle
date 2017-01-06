@@ -29,6 +29,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:design:24.2.0'
     compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.3'
+    compile 'me.dm7.barcodescanner:zxing:1.8.4'
     testCompile 'junit:junit:4.12'
     compile 'com.android.support.test.espresso:espresso-core:2.2.2'
 }

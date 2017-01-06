@@ -69,7 +69,7 @@
     <string name="subject_scan">Scanning the subject!</string>
     <string name="subject_search">Searching for subject!</string>
     <string name="testing_subject">Testing the subject!</string>
-    <string name="time_left">\"Time Left: \"</string>
+    <string name="time_left">Time Left: </string>
     <string name="waiting_start">Waiting for Start!</string>
     <string name="you_died">You died!</string>
     <string name="zombie_died">The Zombie died!</string>

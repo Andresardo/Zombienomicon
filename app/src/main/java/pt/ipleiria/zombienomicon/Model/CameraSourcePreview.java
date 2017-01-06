@@ -96,7 +96,9 @@ public class CameraSourcePreview extends ViewGroup {
                 // for ActivityCompat#requestPermissions for more details.
                 return;
             }
-            mCameraSource.start(mSurfaceView.getHolder());
+
+            SurfaceHolder holder = mSurfaceView.getHolder();
+            mCameraSource.start(holder);
             if (mOverlay != null) {
                 Size size = mCameraSource.getPreviewSize();
                 int min = Math.min(size.getWidth(), size.getHeight());

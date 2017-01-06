@@ -65,7 +65,7 @@
     <string name="select_revolver">Selecionar Revolver</string>
     <string name="select_lightsaber">Selecionar Light Saber</string>
     <string name="start">Iniciar</string>
-    <string name="time_left">\"Tempo Restante: \"</string>
+    <string name="time_left">Tempo Restante: </string>
     <string name="testing_subject">Testando o sujeito!</string>
     <string name="subject_search">Procurando pelo sujeito!</string>
     <string name="subject_scan">Analisando o sujeito!</string>

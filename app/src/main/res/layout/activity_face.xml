@@ -161,16 +161,4 @@
         android:contentDescription="@string/selected__weapon"
         android:visibility="invisible" />
 
-    <!--<ProgressBar
-        style="@android:style/Widget.ProgressBar.Horizontal"
-        android:layout_width="match_parent"
-        android:id="@+id/progressBar"
-        android:layout_height="40dp"
-        android:progressDrawable="@android:color/holo_blue_dark"
-        android:layout_above="@+id/button_ZVK"
-        android:layout_alignParentStart="true"
-        android:background="@android:color/black"
-        android:progress="50"
-        android:indeterminate="false" /> -->
-
 </RelativeLayout>
