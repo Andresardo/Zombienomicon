@@ -192,7 +192,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     }
 
     /**
-     * Draws the eye, either closed or open with the iris in the current position.
+     * Draws the eye, either closed or open with the iris in the middle.
      */
     private void drawEye(Canvas canvas, PointF eyePosition, float eyeRadius, float irisRadius, boolean isOpen) {
         if (isOpen) {

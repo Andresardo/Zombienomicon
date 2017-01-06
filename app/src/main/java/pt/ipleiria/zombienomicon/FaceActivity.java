@@ -153,11 +153,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        /*
-        ProgressBar mProgress = (ProgressBar) findViewById(R.id.progressBar);
-        mProgress.setIndeterminate(false);
-        mProgress.setMax(100);
-        mProgress.setProgress(50);*/
 
         buildGoogleApiClient();
         mGoogleApiClient.connect();
@@ -169,7 +164,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             public void onTick(long millisUntilFinished) {
                 String str = getString(R.string.time_left) + millisUntilFinished / 1000;
                 textView_Timer.setText(str);
-                //mProgress.setProgress((int)millisUntilFinished/100);
             }
 
             /**
@@ -322,11 +316,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                  * Caso se receba "Subject lost!", o botão para iniciar o teste fica invisivel;
                  * Caso contrário é chamado o lastMethod para terminar a atividade.
                  */
-                if (!Objects.equals(feedback, "Start test!") && !Objects.equals(feedback, "Subject lost!")) {
+                if (!Objects.equals(feedback, getString(R.string.start_test)) && !Objects.equals(feedback, getString(R.string.subject_lost))) {
                     lastMethod();
-                } else if (Objects.equals(feedback, "Start test!")) {
+                } else if (Objects.equals(feedback, getString(R.string.start_test))) {
                     button_start.setVisibility(View.VISIBLE);
-                } else if (Objects.equals(feedback, "Subject lost!")) {
+                } else if (Objects.equals(feedback, getString(R.string.subject_lost))) {
                     button_start.setVisibility(View.INVISIBLE);
                 }
             }
@@ -428,7 +422,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     }
                     break;
                 default:
-                    Toast.makeText(this, "No weapon is selected!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.no_weapon, Toast.LENGTH_SHORT).show();
                     break;
             }
         }
@@ -450,7 +444,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        Toast.makeText(this, sensor.getName() + "accuracy changed to " + accuracy, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, sensor.getName() + getString(R.string.accuracy_change) + accuracy, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -470,8 +464,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             return;
         }
 
-        Log.e(TAG, "Permission not granted: results len = " + grantResults.length +
-                " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
+        Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
 
         DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
@@ -480,7 +473,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Face Tracker sample")
+        builder.setTitle(R.string.camera_permission)
                 .setMessage(R.string.no_camera_permission)
                 .setPositiveButton(R.string.ok, listener)
                 .show();
@@ -536,10 +529,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.bluetooth_not_available, Toast.LENGTH_SHORT).show();
         }
         if (!mBluetoothAdapter.isEnabled()) {
-            Toast.makeText(this, "Bluetooth is not enabled.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
 
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivity(enableBtIntent);
@@ -719,16 +712,16 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     public void lastMethod() {
         Zombie z;
-        GregorianCalendar date;
+        GregorianCalendar date, detectionDate = (GregorianCalendar) GregorianCalendar.getInstance();
         android.support.v7.app.AlertDialog.Builder editConfirmation = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
         if (!isZombie) {
             /**
              * Caso o sujeito não seja Zombie, apresenta um AlertDialog com essa informação
              */
-            editConfirmation.setTitle("The living shall rise!");
-            editConfirmation.setMessage("The subject is human!");
+            editConfirmation.setTitle(R.string.living_rise);
+            editConfirmation.setMessage(R.string.subject_human);
             editConfirmation.setPositiveButton(
-                    "OK",
+                    R.string.ok,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             finish();
@@ -743,20 +736,20 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                  * Caso seja um Zombie é apresentado um AlertDialog com a informação relativa ao seu estado
                  */
                 textView_Info.setText(R.string.zombie_died);
-                editConfirmation.setTitle("The living shall rise!");
-                editConfirmation.setMessage("The Zombie died!");
+                editConfirmation.setTitle(R.string.living_rise);
+                editConfirmation.setMessage(R.string.zombie_died);
                 editConfirmation.setPositiveButton(
-                        "OK",
+                        R.string.ok,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 finish();
                             }
                         });
             } else {
-                editConfirmation.setTitle("The dead shall rise!");
-                editConfirmation.setMessage("You died!");
+                editConfirmation.setTitle(R.string.dead_rise);
+                editConfirmation.setMessage(R.string.you_died);
                 editConfirmation.setPositiveButton(
-                        "OK",
+                        R.string.ok,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 finish();
@@ -768,7 +761,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
              * "Unnamed Zombie"; o género passa a ser "Undefined" e o Id é o primeiro Id não utilizado
              */
             if (receivedId == -1) {
-                receivedName = "Unnamed Zombie";
+                receivedName = getString(R.string.unnamed_zombie);
                 receivedGender = Gender.UNDEFINED;
                 receivedId = Singleton.getInstance().getZombienomicon().searchAvailableID();
             } else {
@@ -779,17 +772,27 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                     /**
                      * Caso exista, este Zombie é removido da lista
                      */
+                    detectionDate = Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId).getDetection_date();
                     Singleton.getInstance().getZombienomicon().deleteZombie(Singleton.getInstance().getZombienomicon().searchPositionByID(receivedId));
                 }
             }
+
             /**
              * É criado um Zombie com os parâmetros corretos dependendo do estado
              */
             if (isDead) {
-                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, State.BooleanState(isDead));
+                if (location != null) {
+                    z = new Zombie(receivedId, detectionDate, (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, location, State.BooleanState(isDead));
+                } else {
+                    z = new Zombie(receivedId, detectionDate, (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, getString(R.string.unknown_location), State.BooleanState(isDead));
+                }
             } else {
                 date = new GregorianCalendar(10, 1, 1);
-                z = new Zombie(receivedId, (GregorianCalendar) GregorianCalendar.getInstance(), date, receivedName, receivedGender, location, State.BooleanState(isDead));
+                if (location != null) {
+                    z = new Zombie(receivedId, detectionDate, date, receivedName, receivedGender, location, State.BooleanState(isDead));
+                } else {
+                    z = new Zombie(receivedId, detectionDate, (GregorianCalendar) GregorianCalendar.getInstance(), receivedName, receivedGender, getString(R.string.unknown_location), State.BooleanState(isDead));
+                }
             }
             /**
              * O Zombie é adicionado à lista
@@ -827,7 +830,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     @Override
     public void onConnected(Bundle bundle) {
-        Toast.makeText(FaceActivity.this, "Google API Client connected.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(FaceActivity.this, R.string.google_api_connected, Toast.LENGTH_SHORT).show();
 
         /**
          * A última localização é pedida a cada segundo
@@ -849,7 +852,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         if (mLastLocation != null) {
             getLocation();
         } else {
-            Toast.makeText(FaceActivity.this, "ERROR: unable to get last location.", Toast.LENGTH_LONG).show();
+            Toast.makeText(FaceActivity.this, R.string.error_last_location, Toast.LENGTH_LONG).show();
         }
 
     }
@@ -859,7 +862,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     @Override
     public void onConnectionSuspended(int i) {
-        Toast.makeText(FaceActivity.this, "Google API Client connection suspended.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(FaceActivity.this, R.string.google_api_suspended, Toast.LENGTH_SHORT).show();
         mGoogleApiClient.connect();
     }
 
@@ -868,7 +871,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Toast.makeText(FaceActivity.this, "Google API Client connection failed.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(FaceActivity.this, R.string.google_api_failed, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -883,9 +886,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             if(addresses.get(0).getCountryName()!=null){
                 location = location + ", " + addresses.get(0).getCountryName();
             }
-            Toast.makeText(FaceActivity.this, "Location read.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(FaceActivity.this, R.string.location_read, Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
-            Toast.makeText(FaceActivity.this, "ERROR: unable to get address from location.", Toast.LENGTH_LONG).show();
+            Toast.makeText(FaceActivity.this, R.string.error_location, Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
     }
@@ -909,7 +912,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          */
         ServerTask() {
             try {
-                mmServerSocket = mBluetoothAdapter.listenUsingRfcommWithServiceRecord("My Bluetooth App", UUID.fromString(MY_UUID));
+                mmServerSocket = mBluetoothAdapter.listenUsingRfcommWithServiceRecord("Zombienomicon Bluetooth Socket", UUID.fromString(MY_UUID));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1023,7 +1026,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                      * Caso se receba String vazia, é apresentado ao Zombie Runner que houve um erro
                      * de comunicação e é necessário reiniciar o teste
                      */
-                    builder.setMessage("Error receiving information. Please restart the test!");
+                    builder.setMessage(R.string.error_restart_test);
                     builder.create().show();
                     timer.cancel();
                     button_bluetooth.setVisibility(View.VISIBLE);
@@ -1095,7 +1098,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                  */
                 Message message = mHandler.obtainMessage();
                 Bundle bundle = new Bundle();
-                bundle.putString(FEEDBACK, "Start test!");
+                bundle.putString(FEEDBACK, getString(R.string.start_test));
                 message.setData(bundle);
                 mHandler.sendMessage(message);
             }
@@ -1151,7 +1154,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                             timer.cancel();
                             Message message = mHandler.obtainMessage();
                             Bundle bundle = new Bundle();
-                            bundle.putString(FEEDBACK, "The subject is human!");
+                            bundle.putString(FEEDBACK, getString(R.string.subject_human));
                             message.setData(bundle);
                             mHandler.sendMessage(message);
                             testing = false;
@@ -1180,7 +1183,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                                 isDead = false;
                                 Message message = mHandler.obtainMessage();
                                 Bundle bundle = new Bundle();
-                                bundle.putString(FEEDBACK, "Failed to retire subject");
+                                bundle.putString(FEEDBACK, getString(R.string.failed_retire));
                                 message.setData(bundle);
                                 mHandler.sendMessage(message);
                                 timer.cancel();
@@ -1216,7 +1219,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 transitionL = 0;
                 Message message = mHandler.obtainMessage();
                 Bundle bundle = new Bundle();
-                bundle.putString(FEEDBACK, "Subject lost!");
+                bundle.putString(FEEDBACK, getString(R.string.subject_lost));
                 message.setData(bundle);
                 mHandler.sendMessage(message);
                 testing = false;

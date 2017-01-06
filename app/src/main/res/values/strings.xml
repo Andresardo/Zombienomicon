@@ -61,7 +61,7 @@
     <string name="subject_search">Searching for subject!</string>
     <string name="receive_id_wait">Waiting to receive Info…</string>
     <string name="subject_scan">Scanning the subject!</string>
-    <string name="time_left">Time Left:</string>
+    <string name="time_left">\"Time Left: \"</string>
     <string name="selected__weapon">Selected Weapon</string>
     <string name="select_rolling_pin">Select Rolling Pin</string>
     <string name="select_whip">Select Whip</string>
@@ -72,4 +72,23 @@
     <string name="start">Start</string>
     <string name="testing_subject">Testing the subject!</string>
     <string name="choose_weapon">Choose your weapon!</string>
+    <string name="start_test">Start test!</string>
+    <string name="subject_lost">Subject lost!</string>
+    <string name="failed_retire">Failed to retire subject</string>
+    <string name="no_weapon">No weapon is selected!</string>
+    <string name="accuracy_change">accuracy changed to</string>
+    <string name="camera_permission">Camera permission</string>
+    <string name="bluetooth_not_available">Bluetooth is not available.</string>
+    <string name="bluetooth_not_enabled">Bluetooth is not enabled.</string>
+    <string name="living_rise">The living shall rise!</string>
+    <string name="dead_rise">The dead shall rise!</string>
+    <string name="unnamed_zombie">Unnamed Zombie</string>
+    <string name="unknown_location">Unknown</string>
+    <string name="google_api_connected">Google API Client connected.</string>
+    <string name="error_last_location">ERROR: unable to get last location.</string>
+    <string name="google_api_suspended">Google API Client connection suspended.</string>
+    <string name="google_api_failed">Google API Client connection failed.</string>
+    <string name="location_read">Location read.</string>
+    <string name="error_location">ERROR: unable to get address from location.</string>
+    <string name="error_restart_test">Error receiving information. Please restart the test!</string>
 </resources>
