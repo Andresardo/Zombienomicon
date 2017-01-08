@@ -69,7 +69,7 @@
     <string name="subject_scan">Scanning the subject!</string>
     <string name="subject_search">Searching for subject!</string>
     <string name="testing_subject">Testing the subject!</string>
-    <string name="time_left">Time Left: </string>
+    <string name="time_left">"Time Left: "</string>
     <string name="waiting_start">Waiting for Start!</string>
     <string name="you_died">You died!</string>
     <string name="zombie_died">The Zombie died!</string>
@@ -82,7 +82,6 @@
     <string name="error_location">ERROR: unable to get address from location.</string>
     <string name="error_restart_test">Error receiving information. Please restart the test!</string>
     <string name="failed_retire">Failed to retire subject</string>
-    <string name="google_api_connected">Google API Client connected.</string>
     <string name="google_api_failed">Google API Client connection failed.</string>
     <string name="google_api_suspended">Google API Client connection suspended.</string>
     <string name="living_rise">The living shall rise!</string>

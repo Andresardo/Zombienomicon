@@ -391,9 +391,11 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     @Override
     protected void onPause() {
         super.onPause();
-        mPreview.stop();
-        if (mSensorManager != null) {
-            mSensorManager.unregisterListener(this);
+        if (zvk_state != STATE_QR_CODE) {
+            mPreview.stop();
+            if (mSensorManager != null) {
+                mSensorManager.unregisterListener(this);
+            }
         }
     }
 
@@ -887,8 +889,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     @Override
     public void onConnected(Bundle bundle) {
-        Toast.makeText(FaceActivity.this, R.string.google_api_connected, Toast.LENGTH_SHORT).show();
-
         /**
          * A última localização é pedida a cada segundo
          */

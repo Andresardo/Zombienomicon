@@ -65,7 +65,7 @@
     <string name="select_revolver">Selecionar Revolver</string>
     <string name="select_lightsaber">Selecionar Light Saber</string>
     <string name="start">Iniciar</string>
-    <string name="time_left">Tempo Restante: </string>
+    <string name="time_left">"Tempo Restante: "</string>
     <string name="testing_subject">Testando o sujeito!</string>
     <string name="subject_search">Procurando pelo sujeito!</string>
     <string name="subject_scan">Analisando o sujeito!</string>
@@ -82,7 +82,6 @@
     <string name="error_location">ERRO: falha ao obter o endereço a partir da localização</string>
     <string name="error_restart_test">Erro ao receber informação. Por favor volte a correr o teste!</string>
     <string name="failed_retire">Falha ao exterminar o sujeito</string>
-    <string name="google_api_connected">API Google Client ligada</string>
     <string name="google_api_failed">falha na ligação da API Google Client</string>
     <string name="google_api_suspended">API Google Client suspendida</string>
     <string name="living_rise">Os vivos irão erguer-se!</string>
