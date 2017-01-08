@@ -68,7 +68,7 @@ import pt.ipleiria.zombienomicon.Model.Zombie;
 
 import static pt.ipleiria.zombienomicon.Model.Weapon.REVOLVER;
 
-public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener , LocationListener, ZXingScannerView.ResultHandler {
+public final class FaceActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ZXingScannerView.ResultHandler {
     public static final int STATE_BLUETOOTH = 1;
     public static final int STATE_QR_CODE = 2;
     public static final int STATE_TEST = 3;
@@ -138,9 +138,12 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        setContentView(R.layout.activity_face);
 
-        init();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
 
         /**
          * Timer de 30 segundos
@@ -148,7 +151,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         timer = new CountDownTimer(10000, 1000) {
             public void onTick(long millisUntilFinished) {
                 String str = getString(R.string.time_left) + millisUntilFinished / 1000;
-                textView_Timer.setText(str);
+                if (bluetooth_source) {
+                    textView_Timer.setText(str);
+                }
             }
 
             /**
@@ -157,15 +162,21 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             public void onFinish() {
                 switch (zvk_state) {
                     /**
-                    * Caso não se receba nada, significa que o sujeito é
-                    * um Zombie e o estado passa a ser STATE_WEAPON
-                    */
+                     * Caso não se receba nada, significa que o sujeito é
+                     * um Zombie e o estado passa a ser STATE_WEAPON
+                     */
                     case STATE_QR_CODE:
 
                         isZombie = true;
                         zvk_state = STATE_WEAPON;
                         mScannerView.stopCamera();
-                        mScannerView.setVisibility(View.INVISIBLE);
+                        setContentView(R.layout.activity_face);
+                        init();
+                        mPreview.setVisibility(View.VISIBLE);
+                        mGraphicOverlay.setVisibility(View.VISIBLE);
+                        bluetooth_gif.setVisibility(View.INVISIBLE);
+                        button_bluetooth.setVisibility(View.INVISIBLE);
+                        textView_Info.setVisibility(View.VISIBLE);
                         textView_Info.setText(R.string.choose_weapon);
                         mPreview.setVisibility(View.VISIBLE);
                         weaponButtonsVisible();
@@ -232,6 +243,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         bluetooth_source = true;
+                        init();
                         dialog.cancel();
 
                     }
@@ -241,15 +253,32 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 "QR Code",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        bluetooth_gif.setVisibility(View.INVISIBLE);
+                        zvk_state = STATE_QR_CODE;
                         bluetooth_source = false;
+                        mScannerView = new ZXingScannerView(FaceActivity.this);
+                        setContentView(mScannerView);
+                        mScannerView.setResultHandler(FaceActivity.this);
+                        mScannerView.startCamera();
+                        timer.start();
+                        dialog.cancel();
                     }
                 });
         infoSource.setCancelable(false);
         infoSource.show();
+
+        /**
+         * Verifica se tem permissão da câmara antes de lhe aceder
+         */
+        int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        if (rc == PackageManager.PERMISSION_GRANTED) {
+            createCameraSource();
+        } else {
+            requestCameraPermission();
+        }
     }
 
     private void init() {
+        setContentView(R.layout.activity_face);
         textView_Timer = (TextView) findViewById(R.id.textView_Timer);
         textView_Info = (TextView) findViewById(R.id.textView_Info);
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
@@ -265,22 +294,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         button_rollingPin = (ImageButton) findViewById(R.id.Button_RollingPin);
         bluetooth_gif = (TextView) findViewById(R.id.bluetooth_gif);
         weaponImage = (ImageView) findViewById(R.id.weaponImage);
-
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        buildGoogleApiClient();
-        mGoogleApiClient.connect();
-
-        /**
-         * Verifica se tem permissão da câmara antes de lhe aceder
-         */
-        int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
-        if (rc == PackageManager.PERMISSION_GRANTED) {
-            createCameraSource();
-        } else {
-            requestCameraPermission();
-        }
     }
 
     /**
@@ -413,7 +426,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.sword);
                         sound.start();
-                        timer.cancel();
                     }
                     break;
                 case LIGHTSABER:
@@ -421,7 +433,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.lightsaber);
                         sound.start();
-                        timer.cancel();
                     }
                     break;
                 case WHIP:
@@ -431,7 +442,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.whip);
                         sound.start();
-                        timer.cancel();
                     }
                     break;
                 case REVOLVER:
@@ -441,7 +451,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.revolver);
                         sound.start();
-                        timer.cancel();
                     }
                     break;
                 case FIST:
@@ -449,7 +458,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         movementDetection();
                         MediaPlayer sound = MediaPlayer.create(FaceActivity.this, R.raw.fist);
                         sound.start();
-                        timer.cancel();
                     }
                     break;
                 /**
@@ -464,9 +472,8 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                         transitionW++;
                     }
                     if (transitionW == 3) {
-                        transitionW=0;
+                        transitionW = 0;
                         movementDetection();
-                        timer.cancel();
                     }
                     break;
                 default:
@@ -487,6 +494,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         zvk_state = STATE_VERIFY;
         textView_Info.setText(R.string.movement_detected);
         weaponImage.setVisibility(View.INVISIBLE);
+        textView_Timer.setVisibility(View.INVISIBLE);
         timer.cancel();
     }
 
@@ -574,47 +582,31 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      * É criada uma AssyncTask que espera pelos dados.
      */
     public void buttonBluetoothOnClick(View view) {
-        if(bluetooth_source) {
-           mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-           if (mBluetoothAdapter == null) {
-               Toast.makeText(this, R.string.bluetooth_not_available, Toast.LENGTH_SHORT).show();
-           }
-           if (!mBluetoothAdapter.isEnabled()) {
-               Toast.makeText(this, R.string.bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(this, R.string.bluetooth_not_available, Toast.LENGTH_SHORT).show();
+        }
+        if (!mBluetoothAdapter.isEnabled()) {
+            Toast.makeText(this, R.string.bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
 
-               Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-               startActivity(enableBtIntent);
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivity(enableBtIntent);
 
-           } else {
-               zvk_state = STATE_BLUETOOTH;
-               button_bluetooth.setVisibility(View.INVISIBLE);
-               bluetooth_gif.setVisibility(View.VISIBLE);
-               textView_Info.setVisibility(View.VISIBLE);
-               textView_Info.setText(R.string.receive_id_wait);
-               timer.start();
-               ServerTask serverTask = new ServerTask();
-               serverTask.execute();
-           }
-        }else {
-            zvk_state = STATE_QR_CODE;
+        } else {
+            zvk_state = STATE_BLUETOOTH;
             button_bluetooth.setVisibility(View.INVISIBLE);
+            bluetooth_gif.setVisibility(View.VISIBLE);
             textView_Info.setVisibility(View.VISIBLE);
             textView_Info.setText(R.string.receive_id_wait);
-            textView_Timer.setVisibility(View.VISIBLE);
-            mScannerView = new ZXingScannerView(this);
-            mCameraSource.release();
-            mPreview.release();
-            setContentView(mScannerView);
-            mScannerView.setResultHandler(this);
-            mScannerView.startCamera();
             timer.start();
-
+            ServerTask serverTask = new ServerTask();
+            serverTask.execute();
         }
     }
 
     /**
-    * Método chamado quando se clica no botão para iniciar o teste
+     * Método chamado quando se clica no botão para iniciar o teste
      * Este botão apenas está visivel quando o processo se encontra no estado STATE_TEST ou STATE_VERIFY
      * e quando o detetor reconhece uma cara
      */
@@ -622,6 +614,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         timer.start();
         button_start.setVisibility(View.INVISIBLE);
         textView_Info.setText(R.string.testing_subject);
+        textView_Timer.setVisibility(View.VISIBLE);
         testing = true;
         startCameraSource();
     }
@@ -868,10 +861,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
          * É feito o release do detetor e da camara
          */
         zvk_state = STATE_FINAL;
-        if(detector!=null){
+        if (detector != null) {
             detector.release();
         }
-        if(mCameraSource!=null) {
+        if (mCameraSource != null) {
             mCameraSource.release();
         }
 
@@ -947,7 +940,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         try {
             List<Address> addresses = geocoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
             location = addresses.get(0).getAddressLine(0);
-            if(addresses.get(0).getCountryName()!=null){
+            if (addresses.get(0).getCountryName() != null) {
                 location = location + ", " + addresses.get(0).getCountryName();
             }
             Toast.makeText(FaceActivity.this, R.string.location_read, Toast.LENGTH_SHORT).show();
@@ -962,22 +955,23 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
      */
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation=location;
+        mLastLocation = location;
     }
 
     @Override
     public void handleResult(Result result) {
+        timer.cancel();
         AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
         String[] split = result.getText().split(":");
         receivedId = Integer.parseInt(split[0]);
         receivedName = split[1];
         receivedGender = Gender.StringGender(split[2]);
+        mScannerView.stopCamera();
         setContentView(R.layout.activity_face);
         init();
-        mPreview.setVisibility(View.VISIBLE);
-        mGraphicOverlay.setVisibility(View.VISIBLE);
         bluetooth_gif.setVisibility(View.INVISIBLE);
         button_bluetooth.setVisibility(View.INVISIBLE);
+        textView_Info.setVisibility(View.VISIBLE);
         if (receivedId != -1) {
             /**
              * Caso se tenha recebido algo diferente de String vazia
@@ -987,7 +981,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
             if (Singleton.getInstance().getZombienomicon().searchZombieByID(receivedId) == null) {
                 /**
                  * É verificado se existe um Zombie com o Id recebido na lista.
-                 * Caso não exista o botão para iniciar o teste ZVK fica visivel
+                 * Caso não exista, o botão para iniciar o teste ZVK fica visivel
                  */
                 button_zvk.setVisibility(View.VISIBLE);
                 textView_Info.setVisibility(View.INVISIBLE);
