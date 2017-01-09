@@ -148,7 +148,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         /**
          * Timer de 30 segundos
          */
-        timer = new CountDownTimer(10000, 1000) {
+        timer = new CountDownTimer(30000, 1000) {
             public void onTick(long millisUntilFinished) {
                 String str = getString(R.string.time_left) + millisUntilFinished / 1000;
                 if (bluetooth_source) {
@@ -166,7 +166,6 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                      * um Zombie e o estado passa a ser STATE_WEAPON
                      */
                     case STATE_QR_CODE:
-
                         isZombie = true;
                         zvk_state = STATE_WEAPON;
                         mScannerView.stopCamera();
@@ -236,10 +235,10 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         };
 
         android.support.v7.app.AlertDialog.Builder infoSource = new android.support.v7.app.AlertDialog.Builder(FaceActivity.this);
-        infoSource.setTitle("Information source");
-        infoSource.setMessage("Bluetooth or QR Code?");
+        infoSource.setTitle(R.string.info_source);
+        infoSource.setMessage(R.string.bt_or_qr);
         infoSource.setPositiveButton(
-                "Bluetooth",
+                R.string.bluetooth,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         bluetooth_source = true;
@@ -250,7 +249,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
                 });
 
         infoSource.setNegativeButton(
-                "QR Code",
+                R.string.qr_code,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         zvk_state = STATE_QR_CODE;
@@ -277,6 +276,9 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    /**
+     * Este método Inicializa todas as variáveis utilizadas
+     */
     private void init() {
         setContentView(R.layout.activity_face);
         textView_Timer = (TextView) findViewById(R.id.textView_Timer);
@@ -304,8 +306,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         final String[] permissions = new String[]{Manifest.permission.CAMERA};
 
-        if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.CAMERA)) {
+        if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
             ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
             return;
         }
@@ -351,7 +352,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_FRONT)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedFps(30.0f)
                 .build();
 
@@ -951,13 +952,16 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
     }
 
     /**
-     * Metodo chamado quando existe uma atualização da localização
+     * Método chamado quando existe uma atualização da localização
      */
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
     }
 
+    /**
+     * Método chamado quando a camera encontra um código QR
+     */
     @Override
     public void handleResult(Result result) {
         timer.cancel();
@@ -1024,7 +1028,7 @@ public final class FaceActivity extends AppCompatActivity implements SensorEvent
 
             while (true) { // keep listening until exception occurs or a socket is returned
                 try {
-                    socket = mmServerSocket.accept(10000);
+                    socket = mmServerSocket.accept(30000);
                     Log.i("ServerTask", "Connection established.");
                 } catch (IOException e) {
                     e.printStackTrace();

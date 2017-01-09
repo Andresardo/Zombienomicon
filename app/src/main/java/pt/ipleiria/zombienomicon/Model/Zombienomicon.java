@@ -82,7 +82,7 @@ public class Zombienomicon implements Serializable {
     public ArrayList<Zombie> searchZombieByState(State state) {
         ArrayList<Zombie> list = new ArrayList<>();
         for (Zombie z : zombies) {
-            if (z.getState_dead()== state) {
+            if (z.getState_dead() == state) {
                 list.add(z);
             }
         }
@@ -156,7 +156,7 @@ public class Zombienomicon implements Serializable {
         if (searchZombieByID(z.getId()) != null) {
             throw new IllegalArgumentException("ID já existe!");
         } else {
-            zombies.add(z            );
+            zombies.add(z);
         }
     }
 
@@ -177,19 +177,20 @@ public class Zombienomicon implements Serializable {
         }
         return list;
     }
+
     /**
      * Método que procura o primeiro ID não usado
      */
     public int searchAvailableID() {
         int i;
 
-        for(int id=1; id < 999999999; id++) {
-            for ( i = 0; i < zombies.size(); i++) {
+        for (int id = 1; id < 999999999; id++) {
+            for (i = 0; i < zombies.size(); i++) {
                 if (zombies.get(i).getId() == id) {
                     break;
                 }
             }
-            if(i==zombies.size()) {
+            if (i == zombies.size()) {
                 return id;
             }
         }

@@ -436,6 +436,4 @@ public class SearchActivity extends AppCompatActivity {
         newFragment.setArguments(args);
         newFragment.show(getFragmentManager(), "Date Picker");
     }
-
-
 }

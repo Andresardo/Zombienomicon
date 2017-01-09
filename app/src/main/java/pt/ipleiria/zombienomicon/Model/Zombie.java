@@ -15,10 +15,8 @@ public class Zombie implements Serializable {
     private GregorianCalendar termination_date;
     private String name;
     private Gender gender;
-    //private String gender;
     private String detection_location;
     private State state_dead;
-    //private String state_dead;
 
     /**
      * Construtor da classe que recebe todos os valores necessários para criar um novo Zombie

@@ -41,6 +41,7 @@ public class Singleton {
     public void setZombienomicon(Zombienomicon zombienomicon) {
         this.zombienomicon = zombienomicon;
     }
+
     /**
      * Método que devolve o contexto
      */

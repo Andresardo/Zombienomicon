@@ -37,6 +37,6 @@
 
     <item
         android:id="@+id/configure_url"
-        android:title="Configure URL"
+        android:title="@string/config_url"
         app:showAsAction="never" />
 </menu>

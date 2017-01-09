@@ -54,9 +54,9 @@ import static pt.ipleiria.zombienomicon.AddActivity.PT_IPLEIRIA_ZOMBIENOMICOM_OL
 public class MainActivity extends AppCompatActivity {
     public static final String PT_IPLEIRIA_ZOMBIENOMICON_EDIT_ZOMBIE = "pt.ipleiria.zombienomicon.edit.zombie";
     public static final int REQUEST_CODE_SEARCH = 3;
-    public static String URL = "http://m.uploadedit.com/ba3s/1481125680307.txt";
     private static final int REQUEST_CODE_ADD = 1;
     private static final int REQUEST_CODE_EDIT = 2;
+    public static String URL = "http://m.uploadedit.com/ba3s/1481125680307.txt";
     private Zombienomicon zombienomicon;
     private ArrayList<Zombie> zombies;
     private String saveFile = "zombienomicon.bin";
@@ -235,8 +235,8 @@ public class MainActivity extends AppCompatActivity {
                 final AlertDialog.Builder editConfirmation = new AlertDialog.Builder(this);
 
 
-                editConfirmation.setTitle("ZVK Test");
-                editConfirmation.setMessage("Do you want to do the ZVK test?");
+                editConfirmation.setTitle(R.string.zvk_test);
+                editConfirmation.setMessage(R.string.zvk_test_msg);
 
 
                 editConfirmation.setPositiveButton(
@@ -313,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
                     DownloadContactsTask downloadContactsTask = new DownloadContactsTask();
                     downloadContactsTask.execute(URL);
                 } else {
-                    Toast.makeText(MainActivity.this, "Error: no network connection.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.error_network, Toast.LENGTH_SHORT).show();
                 }
                 break;
             /**
@@ -323,18 +323,18 @@ public class MainActivity extends AppCompatActivity {
             case (R.id.configure_url):
                 AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-                alert.setTitle("Configure URL");
-                alert.setMessage("Write URL link in the box below:");
+                alert.setTitle(R.string.config_url);
+                alert.setMessage(R.string.config_url_msg);
                 final EditText input = new EditText(this);
                 alert.setView(input);
 
-                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                alert.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         URL = input.getText().toString();
                     }
                 });
 
-                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                alert.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                     }
                 });
@@ -562,7 +562,7 @@ public class MainActivity extends AppCompatActivity {
                 inputStream.close();
                 return contentAsString;
             } catch (IOException e) {
-                return "ERROR: unable to retrieve web page. URL may be invalid.";
+                return getString(R.string.error_url_invalid);
             }
         }
 
@@ -571,11 +571,11 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         protected void onPostExecute(String result) {
-            if (!result.startsWith("ERROR")) {
+            if (!result.startsWith("ERRO")) {
                 parseZombie(result);
                 createSimpleAdapter(zombienomicon.getZombies());
                 zombie_list.setAdapter(simpleadapter);
-                Toast.makeText(MainActivity.this, "Contacts loaded from network resource!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, R.string.zombies_loaded, Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
             }

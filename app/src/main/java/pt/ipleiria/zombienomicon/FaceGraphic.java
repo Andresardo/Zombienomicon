@@ -93,6 +93,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
     void setId(int id) {
         mFaceId = id;
     }
+
     /**
      * Updates the face instance from the detection of the most recent frame.  Invalidates the
      * relevant portions of the overlay to trigger a redraw.
@@ -158,7 +159,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         }
     }
 
-     void setZombie(boolean isZombie) {
+    void setZombie(boolean isZombie) {
         this.isZombie = isZombie;
     }
 
@@ -170,6 +171,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
             mPreviousProportions.put(landmark.getType(), new PointF(xProp, yProp));
         }
     }
+
     /**
      * Finds a specific landmark position, or approximates the position based on past observations
      * if it is not present.

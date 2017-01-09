@@ -53,8 +53,7 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
     }
 
     /**
-     * Método que permite aceder a métodos noutras classes dependendo da classe (e método) que criou
-     * este DatePickerFragment
+     * Método que permite aceder a métodos noutras classes dependendo da classe (e método) que criou este DatePickerFragment
      */
     @Override
     public void onDateSet(DatePicker view, int year, int month, int day) {

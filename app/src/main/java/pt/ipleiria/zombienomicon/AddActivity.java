@@ -211,7 +211,7 @@ public class AddActivity extends AppCompatActivity {
         if (!editText_AddName.getText().toString().isEmpty()
                 && !editText_AddId.getText().toString().isEmpty()
                 && !editText_AddDetectionLocation.getText().toString().isEmpty()
-                && state!=null && gender != null
+                && state != null && gender != null
                 && !dateDetection.equals(dateVerifier)) {
             /**
              * Caso se tenham verificado as condições anteriores, e se o estado for morto ("Dead"), é

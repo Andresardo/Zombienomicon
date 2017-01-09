@@ -14,7 +14,6 @@
     <string name="termination_date">"Termination Date: "</string>
     <string name="dead">Dead</string>
     <string name="female">Female</string>
-    <string name="male">Male</string>
     <string name="undead">Undead</string>
     <string name="undefined">Undefined</string>
     <string name="edit">Edit</string>
@@ -89,5 +88,17 @@
     <string name="google_api_failed">Google API Client connection failed.</string>
     <string name="location_read">Location read.</string>
     <string name="error_location">ERROR: unable to get address from location.</string>
-    <string name="error_restart_test">Error receiving information. Please restart the test!</string>
+    <string name="error_restart_test">ERROR: couldn\'t receive information. Please restart the test!</string>
+    <string name="info_source">Information source</string>
+    <string name="bt_or_qr">Bluetooth or QR Code?</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="qr_code">QR Code</string>
+    <string name="zvk_test">ZVK Test</string>
+    <string name="zvk_test_msg">Do you want to do the ZVK test?</string>
+    <string name="error_network">ERROR: no network connection.</string>
+    <string name="config_url">Configure URL</string>
+    <string name="config_url_msg">Write URL link in the box below:</string>
+    <string name="error_url_invalid">ERROR: unable to retrieve web page. URL may be invalid.</string>
+    <string name="zombies_loaded">Zombie loaded from network resource!</string>
+    <string name="male">Male</string>
 </resources>
