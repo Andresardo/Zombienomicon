@@ -93,7 +93,7 @@
     <string name="unnamed_zombie">Zombie sem nome</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="bt_or_qr">Bluetooth ou código QR?</string>
-    <string name="config_url">Configure URL</string>
+    <string name="config_url">Configurar URL</string>
     <string name="config_url_msg">Escreva o link URL na caixa abaixo:</string>
     <string name="zombies_loaded">Zombies carregados dos recursos da rede!</string>
     <string name="error_network">ERRO: nenhuma ligação de rede.</string>
